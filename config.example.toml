@@ -1,0 +1,58 @@
+# Copy to config.toml. Anything left out falls back to the built-in defaults
+# in internal/config/config.go.
+
+# Rules are prose, not a fixed vocabulary. Leaving this table out entirely
+# uses the three built-in defaults: sponsor, selfpromo, interaction.
+[[rules]]
+id = "sponsor"
+prompt = "A paid promotion: the lead-in, the pitch, and the offer for a product or service whose maker paid for the placement"
+threshold = 0.80
+
+[[rules]]
+id = "selfpromo"
+prompt = "Unpaid promotion of the creator's own Patreon, merch, membership, newsletter, or other channels"
+threshold = 0.85
+
+[[rules]]
+id = "interaction"
+prompt = "Asking viewers to like, subscribe, comment, join, or hit the bell, with no other content"
+threshold = 0.85
+
+[jev]
+provider = "openrouter"
+model = "typesafe/jev-1.13"
+parallel = 4
+weights = "data/weights.json"
+
+# Each channel becomes its own podcast feed at <slug>/feed.xml in the R2
+# bucket. "rules" selects which rule ids apply here; empty means all of them.
+[[channels]]
+name = "History of the Universe"
+url = "https://www.youtube.com/@historyoftheuniverse"
+slug = "hotu"
+title = "History of the Universe (de-sponsored)"
+description = "De-sponsored episodes, for sleep listening."
+category = "Science"
+watch_limit = 5
+
+[[channels]]
+name = "The PrimeTime"
+url = "https://www.youtube.com/@ThePrimeTimeagen"
+slug = "primetime"
+title = "ThePrimeTimeagen (de-sponsored)"
+description = "De-sponsored episodes, for commute listening."
+category = "Technology"
+watch_limit = 5
+
+# Podcast-sourced channels (rather than narration-style YouTube videos) tend
+# to have chatty listener-submission segments that fool the fitted start-edge
+# model (see the shearcast README). no_weights falls back to the plain
+# predicate, which is slower but more robust on that kind of content.
+[[channels]]
+name = "Slate Political Gabfest"
+url = "https://www.youtube.com/@Slate"
+slug = "gabfest"
+title = "Slate Political Gabfest (de-sponsored)"
+description = "De-sponsored episodes, for commute listening."
+watch_limit = 5
+no_weights = true

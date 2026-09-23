@@ -1,5 +1,5 @@
 .env
 config.toml
 state.json
-shearcast
+/shearcast
 work/
