@@ -1,0 +1,14 @@
+{"video_id": "1n-YwlVoUC4", "channel": "decoder", "title": "Can John Ternus find Apple's next big thing? | Decoder", "duration": 3270, "segments": [
+  {"category": "selfpromo", "start": 3224, "end": 3237, "confidence": "medium",
+   "borderline": true, "first_line": "And uh obviously I'd love to have you on my new podcast, the Power On podcast, uh launching uh very shortly. So, thanks in advance. >> Yeah, be great.", "last_line": "We'll be looking out for it. Thanks, man.",
+   "advertiser": null, "reason": "Guest Mark Gurman plugs his own upcoming Power On podcast during the goodbye."},
+  {"category": "credits", "start": 3241, "end": 3250, "confidence": "high",
+   "borderline": false, "first_line": "Let us know what you thought about this episode or really anything else at all. Drop us a line.", "last_line": "Or you can hit me up directly on threads or blue sky.",
+   "advertiser": null, "reason": "How to contact the show by email and social."},
+  {"category": "selfpromo", "start": 3250, "end": 3257, "confidence": "high",
+   "borderline": false, "first_line": "We also have a Tik Tok and an Instagram.", "last_line": "If you like decoder, please share it with your friends and subscribe wherever you get your podcasts.",
+   "advertiser": null, "reason": "Plugs the show's TikTok/Instagram and asks listeners to share and subscribe."},
+  {"category": "credits", "start": 3257, "end": 3270, "confidence": "high",
+   "borderline": false, "first_line": "Dakota is a production of the verge and part of the box podcast network.", "last_line": "The decoder music is by Breakmaster Cylinder. We'll see you next time.",
+   "advertiser": null, "reason": "Network identification and production credits running to the end."}
+]}

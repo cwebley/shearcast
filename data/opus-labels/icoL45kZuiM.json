@@ -1,0 +1,55 @@
+{
+ "video_id": "icoL45kZuiM",
+ "channel": "nytdaily",
+ "title": "Health Trackers Are Everywhere. Do Babies Need Them, Too?",
+ "duration": 2042,
+ "segments": [
+  {
+   "category": "credits",
+   "start": 1064,
+   "end": 1082,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": ">> [music] >> We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "relabeled": "2026-09-30: was a low-confidence sponsor label"
+  },
+  {
+   "category": "selfpromo",
+   "start": 1904,
+   "end": 1924,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> You can read more from Sapna Maheshwari and all of our business reporters on the New York Times app.",
+   "last_line": ">> [music] >> If you don't already have the app, we wanted to let you know that if you download it right now, you'll get access [music] to all of our journalism free for 1 month. So, give it a try.",
+   "advertiser": null,
+   "reason": "Pitch to download the New York Times app with a free one-month trial."
+  },
+  {
+   "category": "credits",
+   "start": 1924,
+   "end": 1936,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": ">> [music] >> We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "relabeled": "2026-09-30: was a low-confidence sponsor label"
+  },
+  {
+   "category": "credits",
+   "start": 2000,
+   "end": 2027,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "Today's episode was produced by Diana Winn and Alex Stern, [music] with help from Ricky Novetsky and edited by Lisa Chow.",
+   "last_line": "Our theme music is by Wonderly.",
+   "reason": "Production credit roll: producers, editor, music, engineer and theme music.",
+   "labeler": "opus-credits",
+   "advertiser": null
+  }
+ ]
+}

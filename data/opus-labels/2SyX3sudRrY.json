@@ -1,0 +1,75 @@
+{
+  "video_id": "2SyX3sudRrY",
+  "channel": "vergecast",
+  "title": "Meta’s Muse actually does the thing | The Vergecast",
+  "duration": 5542,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 1,
+      "end": 39,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Support for the show comes from Sonos.",
+      "last_line": "Sonos, love the sound, feel the system.",
+      "advertiser": "Sonos",
+      "reason": "Pre-roll inserted Sonos ad before the show intro."
+    },
+    {
+      "category": "sponsor",
+      "start": 1613,
+      "end": 1663,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We're going to take a break.",
+      "last_line": "com and build your system. Sonos. Love the sound. Feel the system. All right, we're back.",
+      "advertiser": "Sonos",
+      "reason": "Mid-roll break segue plus inserted Sonos ad; content resumes with the hardware segment."
+    },
+    {
+      "category": "sponsor",
+      "start": 3768,
+      "end": 3944,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We have a sponsor on the hype desk. Let's watch it.",
+      "last_line": "com and build your system. Sonos. Love the sound. Feel the system.",
+      "advertiser": "Sonos",
+      "reason": "Hype-desk sponsor intro followed by a host-read Sonos testimonial and a second 'Support for the show comes from Sonos' spot."
+    },
+    {
+      "category": "selfpromo",
+      "start": 5415,
+      "end": 5477,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Nei, what's happening on Decoder?",
+      "last_line": "com for adfree episodes of all of our podcasts, exclusive newsletters, and so much more.",
+      "advertiser": null,
+      "reason": "Outro cross-plugs for Decoder and Version History episodes plus a pitch to subscribe to theverge.com for ad-free episodes and newsletters."
+    },
+    {
+      "category": "credits",
+      "start": 5477,
+      "end": 5497,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We'd love to hear from you.",
+      "last_line": "Today's show is produced by Josh Kahas, Eric Gomez, Brandon Kefir, and Travis Larch. We'll see you next week.",
+      "reason": "Contact email and hotline followed by network identification and producer credits, ending before the closing Sonos ad.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "sponsor",
+      "start": 5497,
+      "end": 5542,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Nei >> Life is too short for bad audio quality. Luckily, there is Sonos.",
+      "last_line": "com and build your system. Sonos. Love the sound? Feel the system.",
+      "advertiser": "Sonos",
+      "reason": "Post-roll inserted Sonos ad running to the end of the video."
+    }
+  ]
+}

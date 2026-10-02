@@ -1,0 +1,30 @@
+{
+  "video_id": "sXRPkBKqp-A",
+  "channel": "hotu",
+  "title": "What Is Beyond The End?",
+  "duration": 3530,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 168,
+      "end": 267,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "In 2023, space probe Voyager 1 had a problem, 46 years into its journey away from the Earth.",
+      "last_line": "com to try this premium remote access tool free of charge.",
+      "advertiser": "AnyDesk",
+      "reason": "Host-read AnyDesk spot, including the Voyager remote-fix anecdote written as a segue into remote control software."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3519,
+      "end": 3530,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Don't forget to like and subscribe, [music] and leave us a comment to tell us what you think. Thanks for watching.",
+      "last_line": "And we'll see you next time.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to like, subscribe and comment, running to the end of the video."
+    }
+  ]
+}

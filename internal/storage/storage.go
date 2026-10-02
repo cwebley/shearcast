@@ -1,8 +1,8 @@
 // Package storage uploads and fetches objects from Cloudflare R2 via its
 // S3-compatible API. R2 is used purely as public object storage here: audio
 // files and each channel's feed.xml, served over a public r2.dev (or custom
-// domain) URL with no authentication layer, since these are private-by-
-// obscurity personal feeds rather than anything access-controlled.
+// domain) URL with no authentication layer. These feeds are unlisted and
+// publicly accessible to anyone with their URLs.
 package storage
 
 import (
@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -22,6 +23,7 @@ import (
 
 // Config is everything needed to reach one R2 bucket.
 type Config struct {
+	HTTPClient      *http.Client // optional injected transport; not a user-facing provider setting
 	AccountID       string
 	Bucket          string
 	AccessKeyID     string
@@ -44,11 +46,15 @@ func New(ctx context.Context, cfg Config) (*Store, error) {
 	if cfg.AccountID == "" || cfg.Bucket == "" || cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" {
 		return nil, fmt.Errorf("storage: account id, bucket, access key id and secret access key are all required")
 	}
-	awsCfg, err := awsconfig.LoadDefaultConfig(ctx,
+	options := []func(*awsconfig.LoadOptions) error{
 		awsconfig.WithRegion("auto"),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
 			cfg.AccessKeyID, cfg.SecretAccessKey, "")),
-	)
+	}
+	if cfg.HTTPClient != nil {
+		options = append(options, awsconfig.WithHTTPClient(cfg.HTTPClient))
+	}
+	awsCfg, err := awsconfig.LoadDefaultConfig(ctx, options...)
 	if err != nil {
 		return nil, fmt.Errorf("storage: loading AWS config: %w", err)
 	}
@@ -108,4 +114,13 @@ func (s *Store) Get(ctx context.Context, key string) ([]byte, error) {
 // PublicURL returns the URL key is served at, without checking it exists.
 func (s *Store) PublicURL(key string) string {
 	return s.publicBaseURL + "/" + strings.TrimLeft(key, "/")
+}
+
+// Delete is idempotent. R2 accepts deletion of a key that is already absent.
+func (s *Store) Delete(ctx context.Context, key string) error {
+	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(key)})
+	if err != nil {
+		return fmt.Errorf("storage: deleting %s: %w", key, err)
+	}
+	return nil
 }

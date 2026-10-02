@@ -1,0 +1,63 @@
+{
+  "video_id": "o1NgBJ9r_H0",
+  "channel": "klatt",
+  "title": "10 Teams outside the Top 10 that could reach the College Football Playoff",
+  "duration": 1793,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 26,
+      "end": 31,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This show is sponsored by Hilton. Hilton for the stay.",
+      "last_line": "and we thank them for their support.",
+      "advertiser": "Hilton",
+      "reason": "Opening Hilton sponsor tag."
+    },
+    {
+      "category": "selfpromo",
+      "start": 452,
+      "end": 455,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "If you haven't subscribed to the show, you should subscribe to the show. Leave a comment.",
+      "last_line": "If you haven't subscribed to the show, you should subscribe to the show. Leave a comment.",
+      "advertiser": null,
+      "reason": "Mid-show subscribe and comment ask."
+    },
+    {
+      "category": "sponsor",
+      "start": 607,
+      "end": 617,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Let's get a little weekend check-in presented by Hilton.",
+      "last_line": "So, let's get a weekend check-in presented by Hilton and look in at Michigan.",
+      "advertiser": "Hilton",
+      "reason": "Hilton presenting-sponsor tag for the weekend check-in segment."
+    },
+    {
+      "category": "sponsor",
+      "start": 1257,
+      "end": 1335,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "College football season is almost here.",
+      "last_line": "We just want to thank SeatGeek for their support of the show and all of college football.",
+      "advertiser": "SeatGeek",
+      "reason": "Host-read SeatGeek ad with promo code."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1778,
+      "end": 1793,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "I break those games down tomorrow right here on the Joel Clatt Show. Subscribe to the show.",
+      "last_line": "And most importantly, please tweet.",
+      "advertiser": null,
+      "reason": "Outro subscribe/follow/rate ask, runs to end."
+    }
+  ]
+}

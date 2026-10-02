@@ -1,0 +1,30 @@
+{
+  "video_id": "Yid9cO7peXg",
+  "channel": "spacetime",
+  "title": "There's Something Massive Hiding Behind the Galaxy's Strangest Star",
+  "duration": 1008,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 17,
+      "end": 77,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before we get started, a couple of quick announcements.",
+      "last_line": "We'll let you know more at the end of the episode",
+      "advertiser": null,
+      "reason": "Like/comment ask, Patreon pitch, merch store plug and teaser for the PBS Eons series; content resumes mid-line at 1:17."
+    },
+    {
+      "category": "selfpromo",
+      "start": 941,
+      "end": 1008,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before you go, we’re excited to tell you that the team over at PBS Eons just finished an amazing new TV show, and it is available now.",
+      "last_line": "Check out the link in the description to watch.",
+      "advertiser": null,
+      "reason": "Network cross-plug for PBS Eons TV series 'Life and Death on Pangea' running to the end."
+    }
+  ]
+}

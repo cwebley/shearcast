@@ -41,22 +41,22 @@ func TestLoadWeightsRejectsEmpty(t *testing.T) {
 	}
 }
 
-func TestScoreSeparatesAdFromProgramme(t *testing.T) {
+func TestScoreSeparatesAdFromProgram(t *testing.T) {
 	w := &Weights{Bias: -2.0, Weights: map[string]float64{
 		"on_topic": -4.0, "anecdote": 2.0, "benefit_claim": 2.5,
 	}}
-	programme := map[string]float64{"on_topic": 0.95, "anecdote": 0.10, "benefit_claim": 0.02}
-	advert := map[string]float64{"on_topic": 0.10, "anecdote": 0.85, "benefit_claim": 0.80}
+	program := map[string]float64{"on_topic": 0.95, "anecdote": 0.10, "benefit_claim": 0.02}
+	ad := map[string]float64{"on_topic": 0.10, "anecdote": 0.85, "benefit_claim": 0.80}
 
-	lo, hi := w.Score(programme), w.Score(advert)
+	lo, hi := w.Score(program), w.Score(ad)
 	if lo >= hi {
-		t.Errorf("programme scored %.3f and advert %.3f; advert should score higher", lo, hi)
+		t.Errorf("program scored %.3f and ad %.3f; ad should score higher", lo, hi)
 	}
 	if lo > 0.2 {
-		t.Errorf("programme scored %.3f, want it low", lo)
+		t.Errorf("program scored %.3f, want it low", lo)
 	}
 	if hi < 0.5 {
-		t.Errorf("advert scored %.3f, want it high", hi)
+		t.Errorf("ad scored %.3f, want it high", hi)
 	}
 }
 

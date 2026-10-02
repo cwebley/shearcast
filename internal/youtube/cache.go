@@ -3,10 +3,14 @@ package youtube
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cwebley/shearcast/internal/fileutil"
+	"github.com/cwebley/shearcast/internal/transcript"
 )
 
 // Cache keeps each video's metadata and caption track on disk, keyed by video
@@ -35,6 +39,11 @@ func (c Cache) Info(ctx context.Context, target string) (*Video, error) {
 			return v, nil
 		}
 	}
+	return c.RefreshInfo(ctx, target)
+}
+
+// RefreshInfo fetches metadata without downloading captions or source audio.
+func (c Cache) RefreshInfo(ctx context.Context, target string) (*Video, error) {
 	v, err := Info(ctx, target)
 	if err != nil {
 		return nil, err
@@ -43,6 +52,61 @@ func (c Cache) Info(ctx context.Context, target string) (*Video, error) {
 		return nil, err
 	}
 	return v, nil
+}
+
+func (c Cache) Cues(ctx context.Context, v *Video) ([]transcript.Cue, error) {
+	path, err := c.Captions(ctx, v)
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	cues, err := transcript.ParseVTT(f)
+	if err != nil {
+		f.Close()
+		os.Remove(path) // do not turn malformed cached captions into a permanent failure
+		return nil, fmt.Errorf("parsing captions: %w", err)
+	}
+	if len(transcript.Windows(cues, "W", 30, 45)) == 0 {
+		f.Close()
+		os.Remove(path)
+		return nil, fmt.Errorf("caption track contains no usable text")
+	}
+	return cues, nil
+}
+
+// RemoveAudio removes only the cached source, leaving metadata and captions.
+func (c Cache) RemoveAudio(id string) error {
+	err := os.Remove(c.SourceAudioPath(id))
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return fileutil.SyncDir(c.videoDir(id))
+}
+
+func (c Cache) SourceAudioPath(id string) string {
+	return filepath.Join(c.videoDir(id), "audio.m4a")
+}
+
+// CleanupWorking reclaims abandoned source downloads under the command lock.
+// Completed audio, metadata and captions are left intact.
+func (c Cache) CleanupWorking(id string) error {
+	paths, err := filepath.Glob(filepath.Join(c.videoDir(id), ".download-*"))
+	if err != nil {
+		return err
+	}
+	for _, path := range paths {
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Captions returns the path to the video's caption track, downloading it only
@@ -56,13 +120,13 @@ func (c Cache) Captions(ctx context.Context, v *Video) (string, error) {
 }
 
 // Audio returns the path to the video's full audio track, downloading it
-// only when it is not on disk yet.
-func (c Cache) Audio(ctx context.Context, v *Video) (string, error) {
-	path := filepath.Join(c.videoDir(v.ID), "audio.m4a")
+// only when it is not on disk yet. progress may be nil.
+func (c Cache) Audio(ctx context.Context, v *Video, progress func(string)) (string, error) {
+	path := c.SourceAudioPath(v.ID)
 	if _, err := os.Stat(path); err == nil {
 		return path, nil
 	}
-	if err := DownloadAudio(ctx, v.URL(), path); err != nil {
+	if err := DownloadAudio(ctx, v.URL(), path, progress); err != nil {
 		return "", err
 	}
 	return path, nil
@@ -90,25 +154,28 @@ func (c Cache) readInfo(id string) (*Video, bool) {
 	if json.Unmarshal(data, &v) != nil || v.ID != id {
 		return nil, false
 	}
+	// Older caches discarded chapters. Fetch full metadata once rather than
+	// treating a missing field as evidence that the source has no chapters.
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(data, &fields) != nil || fields["chapters"] == nil {
+		return nil, false
+	}
 	return &v, true
 }
 
 func (c Cache) writeInfo(v *Video) error {
+	if !validID(v.ID) {
+		return fmt.Errorf("refusing to cache metadata for invalid video id %q", v.ID)
+	}
 	dir := c.videoDir(v.ID)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := fileutil.MkdirAll(dir); err != nil {
 		return err
 	}
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err
 	}
-	// Write then rename, so an interrupted run never leaves a truncated file
-	// that later reads as a cache hit.
-	tmp := filepath.Join(dir, "info.json.tmp")
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, filepath.Join(dir, "info.json"))
+	return fileutil.WriteAtomic(filepath.Join(dir, "info.json"), data, 0o600)
 }
 
 // cachedTrack picks a caption track already in dir, by the same rule Captions
@@ -118,8 +185,9 @@ func cachedTrack(dir string) (string, bool) {
 	return path, err == nil
 }
 
-// VideoID extracts the video id from a bare id or a watch, youtu.be, shorts or
-// live URL. It returns "" when target is none of those, such as a channel URL.
+// VideoID extracts the video id from a bare id or a YouTube watch, youtu.be,
+// shorts, live or embed URL. It returns "" when target is none of those, such
+// as a channel URL or another site's URL that happens to carry a v= parameter.
 func VideoID(target string) string {
 	if !strings.Contains(target, "/") {
 		if validID(target) {
@@ -127,23 +195,31 @@ func VideoID(target string) string {
 		}
 		return ""
 	}
+	if !strings.Contains(target, "://") {
+		target = "https://" + target
+	}
 	u, err := url.Parse(target)
 	if err != nil {
+		return ""
+	}
+	host := strings.ToLower(u.Hostname())
+	if host == "youtu.be" {
+		parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+		if len(parts) == 1 && validID(parts[0]) {
+			return parts[0]
+		}
+		return ""
+	}
+	if host != "youtube.com" && !strings.HasSuffix(host, ".youtube.com") &&
+		host != "youtube-nocookie.com" && !strings.HasSuffix(host, ".youtube-nocookie.com") {
 		return ""
 	}
 	if id := u.Query().Get("v"); validID(id) {
 		return id
 	}
 	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
-	switch {
-	case strings.HasSuffix(u.Host, "youtu.be") && len(parts) == 1:
-		if validID(parts[0]) {
-			return parts[0]
-		}
-	case len(parts) == 2 && (parts[0] == "shorts" || parts[0] == "live" || parts[0] == "embed"):
-		if validID(parts[1]) {
-			return parts[1]
-		}
+	if len(parts) == 2 && (parts[0] == "shorts" || parts[0] == "live" || parts[0] == "embed") && validID(parts[1]) {
+		return parts[1]
 	}
 	return ""
 }

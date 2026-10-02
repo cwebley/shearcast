@@ -1,0 +1,11 @@
+{"video_id": "kWm2LLZHsBA", "channel": "decoder", "title": "OpenAI's executive exodus has one big winner | Decoder", "duration": 2148, "segments": [
+  {"category": "credits", "start": 2132, "end": 2141, "confidence": "high",
+   "borderline": false, "first_line": "If you'd like to let us know what you thought about this episode, or really anything else at all, drop us a line.", "last_line": "Or, you can hit me up directly on Threads or Blue Sky.",
+   "advertiser": null, "reason": "How to contact the show by email and social."},
+  {"category": "selfpromo", "start": 2141, "end": 2144, "confidence": "high",
+   "borderline": false, "first_line": "If you'd like to go to it, please share it with your friends, and subscribe or rate your podcast.", "last_line": "If you'd like to go to it, please share it with your friends, and subscribe or rate your podcast.",
+   "advertiser": null, "reason": "Asks listeners to share, subscribe and rate."},
+  {"category": "credits", "start": 2144, "end": 2148, "confidence": "high",
+   "borderline": false, "first_line": "Decoder is a production of the Verge, and part of the Vox Media Podcast Network. We'll see you next time.", "last_line": "Decoder is a production of the Verge, and part of the Vox Media Podcast Network. We'll see you next time.",
+   "advertiser": null, "reason": "Network identification running to the end."}
+]}

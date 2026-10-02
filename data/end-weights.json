@@ -1,0 +1,42 @@
+{
+  "edge": "end",
+  "bias": -3.092,
+  "trained_on": [
+    "coolworlds",
+    "decoder",
+    "gabfest",
+    "hank",
+    "hotu",
+    "hutchins",
+    "klatt",
+    "lostdebate",
+    "nytdaily",
+    "primetime",
+    "spacetime",
+    "t3",
+    "vergecast"
+  ],
+  "videos": 40,
+  "rows": 1940,
+  "weights": {
+    "addresses_listener": 0.8944,
+    "anecdote": -0.512,
+    "benefit_claim": 0.3259,
+    "continues_previous": -1.1067,
+    "could_be_removed": 2.1732,
+    "dated_fact": -0.2658,
+    "first_person": 0.112,
+    "gratitude": 0.4637,
+    "lex_cta": 0.2012,
+    "lex_thanks": 0.0473,
+    "lex_url": 0.5611,
+    "names_brand": 0.5195,
+    "on_topic": -2.7845,
+    "predicate_returned": -3.4438,
+    "problem_setup": -1.0041,
+    "product_category": 1.1891,
+    "production_meta": 1.8288,
+    "transition": 0.8778,
+    "winds_down_ad": 6.2568
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "video_id": "sT7V4gE4ZIc",
+  "channel": "coolworlds",
+  "title": "Why Technological Civilizations Might Be Insanely Rare",
+  "duration": 1082,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 543,
+      "end": 616,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "By the way, I built this whole app using the sponsor of today's video, that is Perplexity Computer, using a single prompt.",
+      "last_line": "ai/computer, and a big thanks to them for sponsoring [music] us today.",
+      "advertiser": "Perplexity",
+      "reason": "Host-read Perplexity Computer sponsor spot tied to the simulation app."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1010,
+      "end": 1017,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "And I want to hear it, so please do put it down in the comment section.",
+      "last_line": "I want to hear your thoughts on this because it is really puzzling me.",
+      "advertiser": null,
+      "reason": "Request for viewers to comment, framed as genuine discussion of the result."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1039,
+      "end": 1082,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "I know that many of you enjoy these videos but aren't subscribed.",
+      "last_line": "com/support, where you can support us as well for as little as the price of a coffee per month. That's all I've got. Have a great weekend.",
+      "advertiser": null,
+      "reason": "Outro subscribe ask and pitch for Cool Worlds donor support page."
+    }
+  ]
+}

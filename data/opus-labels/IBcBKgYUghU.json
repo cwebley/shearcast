@@ -1,0 +1,19 @@
+{
+  "video_id": "IBcBKgYUghU",
+  "channel": "t3",
+  "title": "So much for \"Pacing\" the Frontier",
+  "duration": 1649,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 100,
+      "end": 196,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before I can explain why, we should pace ourselves a bit and take a quick break for today's sponsor.",
+      "last_line": "Figure out why I like them so much. at soy. link/clerk.",
+      "advertiser": "Clerk",
+      "reason": "Host-read Clerk sponsor spot with a written segue into it."
+    }
+  ]
+}

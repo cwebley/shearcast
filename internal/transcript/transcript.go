@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -69,8 +70,16 @@ func ParseVTT(r io.Reader) ([]Cue, error) {
 			if err != nil {
 				return nil, err
 			}
+			if end <= start {
+				return nil, fmt.Errorf("cue ends before it starts: %q", trimmed)
+			}
 			pending = &Cue{Start: start, End: end}
 			continue
+		}
+		// WebVTT allows "-->" only in a timing line, so any other line holding
+		// it is a broken timing line. Skipping it would drop that cue's text.
+		if strings.Contains(trimmed, "-->") {
+			return nil, fmt.Errorf("malformed timing line: %q", trimmed)
 		}
 		if pending == nil {
 			continue // header, NOTE block, or a cue identifier we don't need
@@ -94,13 +103,25 @@ func ParseVTT(r io.Reader) ([]Cue, error) {
 	return dedupe(cues), nil
 }
 
+// rollingGap is the most time between a cue and the next for the next to count
+// as a rolling restatement of it. YouTube's rolling cues abut (gaps measured
+// at 10ms or less); the same words said again later are new speech.
+const rollingGap = 1.0
+
 // dedupe strips the rolling repetition in YouTube's auto captions, where each
 // cue restates the tail of the one before it.
 func dedupe(cues []Cue) []Cue {
 	out := make([]Cue, 0, len(cues))
-	var prev string
+	var (
+		prev    string
+		prevEnd float64
+	)
 	for _, c := range cues {
 		text := c.Text
+		if c.Start-prevEnd > rollingGap {
+			prev = ""
+		}
+		prevEnd = c.End
 		switch {
 		case text == prev:
 			continue
@@ -185,7 +206,7 @@ func Slice(cues []Cue, start, end float64) []Cue {
 	return out
 }
 
-// Text joins windows back into a readable block, each one labelled with its ID
+// Text joins windows back into a readable block, each one labeled with its ID
 // so Jev's answers can be mapped back to a time range.
 func Text(windows []Window) string {
 	var b strings.Builder
@@ -289,6 +310,7 @@ func Sentences(cues []Cue, prefix string, minChars int) []Sentence {
 		text       string
 		start, end float64
 		terminal   bool
+		glue       bool // joins the piece before it with no space
 	}
 
 	var pieces []piece
@@ -311,6 +333,16 @@ func Sentences(cues []Cue, prefix string, minChars int) []Sentence {
 				})
 			}
 			offset += len(p)
+		}
+	}
+
+	// A spoken web address is captioned with its dot as a full stop, often
+	// with the suffix in the next cue: "Head to zakdoc." then "com/allthehacks
+	// to get started". That dot ends nothing.
+	for i := 0; i+1 < len(pieces); i++ {
+		if strings.HasSuffix(pieces[i].text, ".") && webSuffix.MatchString(pieces[i+1].text) {
+			pieces[i].terminal = false
+			pieces[i+1].glue = true
 		}
 	}
 
@@ -341,7 +373,11 @@ func Sentences(cues []Cue, prefix string, minChars int) []Sentence {
 			start, started = p.start, true
 		}
 		end = p.end
-		body = append(body, p.text)
+		if p.glue && len(body) > 0 {
+			body[len(body)-1] += p.text
+		} else {
+			body = append(body, p.text)
+		}
 		if p.terminal {
 			flushRaw()
 		}
@@ -376,14 +412,22 @@ func Sentences(cues []Cue, prefix string, minChars int) []Sentence {
 	return out
 }
 
+// webSuffix matches text opening with the suffix of a web or email address
+// whose dot ended the text before it.
+var webSuffix = regexp.MustCompile(`(?i)^(com|org|net|io|co|ai|tv|fm|dev|app|gov|edu|us|uk|ly|me)\b`)
+
 // splitAfterTerminators cuts a string after each sentence terminator, keeping
-// the terminator attached to the text it ends.
+// the terminator attached to the text it ends. A dot followed directly by a
+// letter or digit ("sonos.com", "3.5") is part of a word, not a terminator.
 func splitAfterTerminators(s string) []string {
 	var out []string
 	start := 0
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
 		case '.', '?', '!':
+			if s[i] == '.' && i+1 < len(s) && isAlnum(s[i+1]) {
+				continue
+			}
 			out = append(out, s[start:i+1])
 			start = i + 1
 		}
@@ -394,7 +438,11 @@ func splitAfterTerminators(s string) []string {
 	return out
 }
 
-// SentenceText renders sentences as a labelled block for a request state.
+func isAlnum(b byte) bool {
+	return b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' || b >= '0' && b <= '9'
+}
+
+// SentenceText renders sentences as a labeled block for a request state.
 func SentenceText(ss []Sentence) string {
 	var b strings.Builder
 	for _, s := range ss {
@@ -412,4 +460,33 @@ func SliceSentences(ss []Sentence, start, end float64) []Sentence {
 		}
 	}
 	return out
+}
+
+// speechCharsPerSecond is slower than even unhurried narration (around 10-15),
+// so the estimate below errs toward keeping a little music rather than
+// clipping the last words.
+const speechCharsPerSecond = 8
+
+// bracketTag matches caption annotations such as "[Music]" or "[applause]".
+var bracketTag = regexp.MustCompile(`\[[^\]]*\]`)
+
+// SpeechEnd estimates when the last spoken caption finishes, in seconds, or
+// returns 0 when no cue carries speech.
+//
+// A cue's own end time is when it leaves the screen, not when the words stop:
+// PBS Space Time's final caption displays for 20s while whisper puts the end of
+// speech about 4s in, and music plays for the rest. So the estimate is the
+// cue's start plus its text at a slow speaking rate plus 1.5s of margin,
+// capped at the cue's end. Cues holding only annotations like "[Music]" are
+// not speech.
+func SpeechEnd(cues []Cue) float64 {
+	for i := len(cues) - 1; i >= 0; i-- {
+		text := strings.TrimSpace(bracketTag.ReplaceAllString(cues[i].Text, ""))
+		if text == "" {
+			continue
+		}
+		spoken := cues[i].Start + float64(len([]rune(text)))/speechCharsPerSecond + 1.5
+		return math.Min(spoken, cues[i].End)
+	}
+	return 0
 }

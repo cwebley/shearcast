@@ -1,0 +1,30 @@
+{
+  "video_id": "8hwcDaX3ISg",
+  "channel": "decoder",
+  "title": "I have some questions for Mark Zuckerberg | Decoder",
+  "duration": 1110,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 50,
+      "end": 55,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "One thing before we get going, don't forget to subscribe to @decoderpod on YouTube for new episodes every Monday and Thursday.",
+      "last_line": "One thing before we get going, don't forget to subscribe to @decoderpod on YouTube for new episodes every Monday and Thursday.",
+      "advertiser": null,
+      "reason": "Subscribe request for the show's YouTube channel."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1081,
+      "end": 1101,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "I'm also dying to know what you think, anything I got wrong here, anything Alex missed in his questions, or anything else you wish Mark would get asked.",
+      "last_line": "And if you're like me and you're an audio listener of the show, reminder that you can get ad-free episodes by subscribing to the verge. com.",
+      "advertiser": null,
+      "reason": "Outro asking for comments, subscribes, shares, and pitching a Verge subscription for ad-free episodes."
+    }
+  ]
+}

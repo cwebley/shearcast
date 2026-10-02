@@ -1,5 +1,9 @@
 .env
 config.toml
 state.json
+state.json.lock
 /shearcast
 work/
+.DS_Store
+__pycache__/
+*.py[cod]

@@ -1,0 +1,31 @@
+{
+  "video_id": "dPW-vr30n7Q",
+  "channel": "lostdebate",
+  "title": "Negative Immigration, Trump on Data Centers, Alpha Schools",
+  "duration": 2600,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 37,
+      "end": 110,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "First of all, if you're in New York, Nashville, Chattanooga, or Kansas City, I'm going to be traveling the country for my book Invisible List, which comes out in 3 weeks.",
+      "last_line": "Uh the invisible list wherever you get your books.",
+      "advertiser": null,
+      "reason": "Host plugs his own book tour, pre-orders, and a perks group for buyers."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2596.0,
+      "end": 2600,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Remember to rate, review, subscribe, and we'll be back next week. Thank you.",
+      "last_line": "Remember to rate, review, subscribe, and we'll be back next week. Thank you.",
+      "advertiser": null,
+      "reason": "Closing ask to rate, review and subscribe.",
+      "time_corrected": "labeled 1396, but first_line is at 2596 in the transcript (minutes conversion error); moved on 2026-09-28"
+    }
+  ]
+}

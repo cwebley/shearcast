@@ -1,0 +1,30 @@
+{
+  "video_id": "pf7Yxsrt0Qw",
+  "channel": "hotu",
+  "title": "Is This Is The Weirdest Thing In The Universe?",
+  "duration": 3254,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 146,
+      "end": 234,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "In February 2011, Robonaut 2 became the first humanoid robot in space.",
+      "last_line": "com to try this premium remote access tool free of charge.",
+      "advertiser": "AnyDesk",
+      "reason": "Robonaut segue into an AnyDesk ad."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3242,
+      "end": 3254,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Don't [music] forget to like and subscribe and leave us a comment to tell us what you think.",
+      "last_line": "Thanks for [music] watching and we'll see you next time.",
+      "advertiser": null,
+      "reason": "Outro like/subscribe/comment ask."
+    }
+  ]
+}

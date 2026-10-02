@@ -1,0 +1,41 @@
+{
+  "video_id": "FKSdkVIySq0",
+  "channel": "coolworlds",
+  "title": "We're Finally Unlocking the \"Cosmic Shoreline\"",
+  "duration": 1082,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 357,
+      "end": 465,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before I explain how the cosmic shoreline does exactly that, let me first take me to thank the sponsor of today's video. That's Incogni.",
+      "last_line": "com/coolworlds and use the code cool worlds.",
+      "advertiser": "Incogni",
+      "reason": "Host-read Incogni ad."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1006,
+      "end": 1013,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "If you've not seen this before, it's known as the red sky paradox and you definitely want to check out our early video to learn more about this really profound issue.",
+      "last_line": "If you've not seen this before, it's known as the red sky paradox and you definitely want to check out our early video to learn more about this really profound issue.",
+      "advertiser": null,
+      "reason": "Brief plug for the channel's earlier video."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1044,
+      "end": 1082,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you so much for watching, everybody. I hope you enjoyed it.",
+      "last_line": "com/support, and use the link down below in the description.",
+      "advertiser": null,
+      "reason": "Outro like/subscribe ask and support-link pitch."
+    }
+  ]
+}

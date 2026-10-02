@@ -23,7 +23,7 @@ func TestChangepointIgnoresASingleNoisyAnswer(t *testing.T) {
 //
 // Indices 5 and 6 score within 0.002 of each other here, because whether that
 // first 0.3 belongs to the floor or to the rise is genuinely ambiguous. So this
-// asserts the behaviour that distinguishes the two estimators, not a winner on
+// asserts the behavior that distinguishes the two estimators, not a winner on
 // a tie: the edge must land at the foot of the climb, not at its steepest point.
 func TestChangepointPrefersTheFloorExitOverTheSteepestRise(t *testing.T) {
 	ys := []float64{0, 0, 0, 0, 0, 0.3, 0.4, 0.4, 0.4, 0.8, 0.8, 0.8}
@@ -117,7 +117,7 @@ func TestChangepointIsDraggedEarlyByANoisyTail(t *testing.T) {
 }
 
 func TestChangepointOnTheSameTailCappedFindsTheTrueEdge(t *testing.T) {
-	// The fix: same curve, only the front considered. Mirrors what findEdge
+	// The fix: same curve, only the front considered. Mirrors what bound
 	// does when Options.EndFitWindow caps the fit but still returns (and still
 	// asks about) the full curve.
 	capped := si2iggz3facEndCurve[:10]
@@ -224,5 +224,86 @@ func TestChangepointIsLinearOnLongCurves(t *testing.T) {
 	}
 	if got := changepoint(ys); got != 1200 {
 		t.Errorf("got %d, want 1200", got)
+	}
+}
+
+// fitEnd, on measured closing curves. Replayed across all 19 labeled curves in
+// data/end-curves.jsonl by fit/replay_end_edge.py; these pin the three it
+// changed and two it must leave alone.
+
+// qgLaCZyKv_8 (doorbell): a sponsor skit runs past the 11-candidate window with
+// the model correctly scoring it low; the return is index 15 (0.74).
+var doorbellEndCurve = []float64{
+	0.07, 0.08, 0.29, 0.26, 0.28, 0.35, 0.32, 0.20, 0.18, 0.14, 0.14,
+	0.21, 0.19, 0.25, 0.15, 0.74, 0.62, 0.68,
+}
+
+func TestFitEndWidensPastASkitToTheRealReturn(t *testing.T) {
+	// The old fit took index 2 on a 0.16 step and kept the whole skit.
+	got := fitEnd(doorbellEndCurve, 11, 0.3, 0.3)
+	if got.idx != 15 || got.step < 0.3 {
+		t.Errorf("got idx %d step %.2f (%s), want 15 with a real step", got.idx, got.step, got.reason)
+	}
+}
+
+func TestFitEndLetsAReadThatEndsTheVideoRunOut(t *testing.T) {
+	// I07RBedXRYA: the Incogni read runs to the last caption. The old fit cut at
+	// index 2 on a 0.01 step and kept "use the code SPACETIME".
+	got := fitEnd([]float64{0.06, 0.05, 0.06, 0.07}, 11, 0.3, 0.3)
+	if got.idx != 4 {
+		t.Errorf("got idx %d (%s), want 4: the program never returns", got.idx, got.reason)
+	}
+}
+
+func TestFitEndKeepsContentWhenTheCurveIsAmbiguous(t *testing.T) {
+	// YSwRqNCeP9k: three candidates, all middling, content really resumes at
+	// index 0. The old fit took index 2 on a 0.11 step and cut 7s of physics.
+	got := fitEnd([]float64{0.51, 0.46, 0.60}, 11, 0.3, 0.3)
+	if got.idx != 0 {
+		t.Errorf("got idx %d (%s), want 0", got.idx, got.reason)
+	}
+}
+
+func TestFitEndLeavesClearStepsAlone(t *testing.T) {
+	for name, tc := range map[string]struct {
+		curve []float64
+		want  int
+	}{
+		"SI2IggZ3Fac": {si2iggz3facEndCurve, 9},
+		"d3Gjq-BffuI": {d3gjqBffuiEndCurve, 10},
+	} {
+		if got := fitEnd(tc.curve, 11, 0.3, 0.3); got.idx != tc.want || got.reason != "step" {
+			t.Errorf("%s: got idx %d (%s), want %d from the unwidened window", name, got.idx, got.reason, tc.want)
+		}
+	}
+}
+
+func TestFitStartKeepsTheAnchorWhenEveryCandidateIsAlreadyTheAdvertisement(t *testing.T) {
+	// The Vergecast 2SyX3sudRrY opens on a Sonos read at 0:00, so no candidate
+	// precedes it. The segue scored ~0.7, then the product pitch ~0.97; taking
+	// that rise as the edge cut the read in half.
+	curve := []float64{0.659, 0.728, 0.745, 0.662, 0.669, 0.975, 0.976, 0.927}
+	if idx, _ := fitStart(curve); idx != 0 {
+		t.Fatalf("edge at %d, want 0 (the advertisement had begun by the first candidate)", idx)
+	}
+}
+
+func TestFitStartFindsASegueRisingFromContent(t *testing.T) {
+	curve := []float64{0.02, 0.05, 0.03, 0.40, 0.62, 0.95, 0.97}
+	if idx, step := fitStart(curve); idx != 4 || step <= 0 {
+		t.Fatalf("edge at %d (step %.2f), want 4", idx, step)
+	}
+}
+
+// A curve that neither steps nor stays low decides nothing. fitEnd says so,
+// and bound keeps the anchor's end rather than the first candidate, which sits
+// a scan window inside the anchor.
+func TestFitEndFlagsAnAmbiguousCurve(t *testing.T) {
+	e := fitEnd([]float64{0.4, 0.5, 0.45, 0.5, 0.42}, 11, 0.3, 0.3)
+	if !e.ambiguous {
+		t.Errorf("got %+v, want an ambiguous edge", e)
+	}
+	if e := fitEnd([]float64{0.05, 0.05, 0.9, 0.9}, 11, 0.3, 0.3); e.ambiguous || e.idx != 2 {
+		t.Errorf("clear step: got %+v, want idx 2 and not ambiguous", e)
 	}
 }

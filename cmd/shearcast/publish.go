@@ -3,21 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"github.com/cwebley/shearcast/internal/config"
+	"os"
+
 	"github.com/cwebley/shearcast/internal/pipeline"
-	"github.com/cwebley/shearcast/internal/storage"
+	"github.com/cwebley/shearcast/internal/state"
 	"github.com/cwebley/shearcast/internal/youtube"
 )
 
 // runPublish uploads an already-rendered episode to storage and updates its
 // channel's feed. It expects "render" (or "sync") to have already produced
-// <cache>/<id>/render.m4a.
+// a channel-specific render. -audio can explicitly import an older output.
 func runPublish(ctx context.Context, args []string) error {
 	fs := flagSet("publish", "<video-url-or-id> -channel SLUG [flags]")
-	cfgPath := fs.String("config", "config.toml", "config file (optional)")
+	cfgPath := fs.String("config", config.DefaultConfigPath(), "config file (optional)")
 	channelSlug := fs.String("channel", "", "channel slug from config.toml")
-	audioPath := fs.String("audio", "", "path to the rendered audio (default: <cache>/<id>/render.m4a)")
+	audioPath := fs.String("audio", "", "explicit path to rendered audio (default: recorded channel render)")
+	statePath := fs.String("state", config.DefaultStatePath(), "episode state and command lock")
 	cacheDir := cacheFlag(fs)
 	positional, err := parseArgs(fs, args)
 	if err != nil {
@@ -28,40 +30,32 @@ func runPublish(ctx context.Context, args []string) error {
 		return fmt.Errorf("need exactly one video url or id")
 	}
 
-	cfg, err := config.Load(*cfgPath)
+	cfg, err := loadCommandConfig(*cfgPath, *statePath, *cacheDir)
 	if err != nil {
 		return err
 	}
+	st, err := state.Open(*statePath)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
 	channel, err := requireChannel(cfg, *channelSlug)
 	if err != nil {
 		return err
 	}
 
-	cache := youtube.Cache{Dir: *cacheDir}
-	video, _, err := loadVideo(ctx, cache, positional[0])
+	store, err := newPublisher(ctx, cfg, st, false)
 	if err != nil {
 		return err
 	}
 
-	path := *audioPath
-	if path == "" {
-		path = cache.Dir + "/" + video.ID + "/render.m4a"
-	}
-
-	storeCfg, err := storageConfigFromEnv()
+	runner := pipeline.Runner{Config: cfg, Cache: youtube.Cache{Dir: *cacheDir}, State: st, Publisher: store}
+	defer func() { printUsage(os.Stderr, "model usage this run", &runner.Usage) }()
+	episode, err := runner.Run(ctx, pipeline.EpisodeRequest{Action: pipeline.Publish, Channel: channel, Target: positional[0], AudioPath: *audioPath})
 	if err != nil {
 		return err
 	}
-	store, err := storage.New(ctx, storeCfg)
-	if err != nil {
-		return err
-	}
-
-	result, err := pipeline.PublishEpisode(ctx, store, channel, video, path)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("uploaded %s\n", result.AudioURL)
-	fmt.Printf("feed updated: %s\n", result.FeedURL)
+	fmt.Printf("published %s\n", episode.AudioURL)
+	fmt.Printf("feed updated: %s\n", episode.FeedURL)
 	return nil
 }

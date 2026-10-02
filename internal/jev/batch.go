@@ -2,6 +2,7 @@ package jev
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"golang.org/x/sync/errgroup"
@@ -32,7 +33,14 @@ func (c *Client) AskAll(ctx context.Context, batches []Batch, parallel int) (map
 			return nil
 		})
 	}
-	if err := g.Wait(); err != nil {
+	batchErr := g.Wait()
+	// errgroup returns only its first error. A later in-flight response may
+	// fail its accounting checkpoint; never let an earlier API error hide the
+	// invocation-wide stop signal after those requests have settled.
+	c.mu.Lock()
+	recordErr := c.recordErr
+	c.mu.Unlock()
+	if err := errors.Join(batchErr, recordErr); err != nil {
 		return nil, err
 	}
 

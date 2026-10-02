@@ -1,0 +1,10 @@
+{"video_id": "ZKxq7lgqpIM", "channel": "primetime", "title": "Your CS Degree Is Teaching You the Wrong Things | TheStandup", "duration": 2439, "segments": [
+  {"category": "sponsor", "start": 273, "end": 304, "confidence": "high", "borderline": false,
+   "first_line": "That's not how we order coffee. We order coffee via SSH. terminal.shop.",
+   "last_line": ">> Terminal [singing] coffee in hand, living the dream.",
+   "advertiser": "terminal.shop", "reason": "Scripted coffee ad for terminal.shop with jingle, segued from 'is that HTTP?' at the end of the 4:27 line."},
+  {"category": "selfpromo", "start": 2413, "end": 2439, "confidence": "high", "borderline": false,
+   "first_line": ">> Hey guys, if you like this episode, you can watch the rest of it on Spotify, and don't forget to like AND SUBSCRIBE. WOO! SEE YOU LATER.",
+   "last_line": "Terminal coffee living the dream.",
+   "advertiser": null, "reason": "Outro pushing the rest of the episode on Spotify plus like/subscribe ask, followed by the coffee jingle to the end."}
+]}

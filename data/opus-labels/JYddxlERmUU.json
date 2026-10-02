@@ -1,0 +1,30 @@
+{
+  "video_id": "JYddxlERmUU",
+  "channel": "coolworlds",
+  "title": "The Genius Who Thought Aliens Lived in the Sun",
+  "duration": 1036,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 381,
+      "end": 486,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Now, today's episode is sponsored by NordVPN.",
+      "last_line": "Now, back to the episode.",
+      "advertiser": "NordVPN",
+      "reason": "Host-read NordVPN sponsor spot with a discount link."
+    },
+    {
+      "category": "selfpromo",
+      "start": 982,
+      "end": 1036,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you so much for watching, guys.",
+      "last_line": "See you in the next video.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to like, share and subscribe, a shout-out to a friend's channel, and a pitch for the Cool Worlds Lab support page, running to the end."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "video_id": "W9-UG1hvMYs",
+  "channel": "primetime",
+  "title": "Casey Muratori Judges Our Digging Games | TheStandup",
+  "duration": 3277,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 213,
+      "end": 254,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> So I have things I need to say before.",
+      "last_line": "So check out Linear today and actually save real time.",
+      "advertiser": "Linear",
+      "reason": "Host-read Linear ad with a short lead-in; ad tail 'The ad is the linear engine' shares the 4:14 line with resumed content."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3251,
+      "end": 3277,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Hey guys, if you like this episode, you can watch the rest of it on the Spotify.",
+      "last_line": "Terinal [singing] coffee and living the dream.",
+      "advertiser": null,
+      "reason": "Outro pointing to Spotify plus like-and-subscribe, followed by outro song to end."
+    }
+  ]
+}

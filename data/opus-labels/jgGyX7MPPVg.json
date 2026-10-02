@@ -1,0 +1,52 @@
+{
+  "video_id": "jgGyX7MPPVg",
+  "channel": "t3",
+  "title": "Wow.",
+  "duration": 2414,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 114,
+      "end": 199,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "I can't wait to show you all of the reasons why I'm so impressed after a real quick break for today's sponsor.",
+      "last_line": "Works is the only platform that is loved by developers, agents, companies, and IT teams. Figure out why atv. link/workos. Let's dive into Opus 5. 5. Kind of crazy.",
+      "advertiser": "WorkOS",
+      "reason": "Host-read WorkOS ad with segue; content resumes mid-line at 3:14 so end is estimated."
+    },
+    {
+      "category": "selfpromo",
+      "start": 214,
+      "end": 230,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you haven't hit the subscribe button, you should consider it because I stay up all night working on these videos nowadays cuz there's just so much to cover.",
+      "last_line": "Less than half of y'all are subbed and it's a great opportunity to stay on top of these things as they change constantly. So, what makes Opus 5. 5 so cool?",
+      "advertiser": null,
+      "reason": "Subscribe request; content resumes mid-line at 3:44 so end is estimated."
+    },
+    {
+      "category": "sponsor",
+      "start": 1396,
+      "end": 1480,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Normally I would make a joke here about how expensive it was to generate all of these tests and all of these examples, but this model has not been very expensive for me.",
+      "last_line": "What are you waiting for? Join now at soyv. link/parallel.",
+      "advertiser": "Parallel",
+      "reason": "Host-read Parallel search API ad with segue."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1766,
+      "end": 1769,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "Make sure you're subbed if you haven't yet in order to see that video right when it drops.",
+      "last_line": "Make sure you're subbed if you haven't yet in order to see that video right when it drops.",
+      "advertiser": null,
+      "reason": "Brief subscribe request."
+    }
+  ]
+}

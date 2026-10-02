@@ -4,6 +4,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/cwebley/shearcast/internal/detect"
-	"github.com/cwebley/shearcast/internal/jev"
+	"github.com/cwebley/shearcast/internal/render"
+	"github.com/cwebley/shearcast/internal/subscribe"
 )
 
 // Rule is one user-defined thing to cut, written in plain English. This is the
@@ -30,10 +32,8 @@ type Rule struct {
 	Threshold float64 `toml:"threshold"`
 }
 
-// Jev holds provider settings and the four-pass tuning knobs.
+// Jev holds the OpenRouter model and the four-pass tuning knobs.
 type Jev struct {
-	Provider string `toml:"provider"` // "openrouter" or "typesafe"
-	BaseURL  string `toml:"base_url"` // overrides Provider when set
 	Model    string `toml:"model"`
 	Parallel int    `toml:"parallel"`
 
@@ -41,13 +41,16 @@ type Jev struct {
 	ScanMaxWindow    float64 `toml:"scan_max_window"`
 	ScanBatchSize    int     `toml:"scan_batch_size"`
 	AnchorThreshold  float64 `toml:"anchor_threshold"`
+	WeakThreshold    float64 `toml:"weak_anchor_threshold"`
+	LocalThreshold   float64 `toml:"localized_threshold"`
+	OutroTrimFloor   float64 `toml:"outro_trim_floor"`
 	LeadInSpan       float64 `toml:"lead_in_span"`
 	TailSpan         float64 `toml:"tail_span"`
 	MinSentence      int     `toml:"min_sentence"`
 	MaxCandidates    int     `toml:"max_candidates"`
 	ContextSpan      float64 `toml:"context_span"`
-	Verify           *bool   `toml:"verify"`
 	Weights          string  `toml:"weights"`
+	EndWeights       string  `toml:"end_weights"`
 	MinRegion        float64 `toml:"min_region"`
 	EndFitWindow     int     `toml:"end_fit_window"`
 	ClusterBridgeGap float64 `toml:"cluster_bridge_gap"`
@@ -63,17 +66,39 @@ type Channel struct {
 	Description string   `toml:"description"` // feed description; defaults to Name
 	Category    string   `toml:"category"`    // itunes:category; defaults to "Technology"
 	Rules       []string `toml:"rules"`       // rule ids; empty means all
-	WatchLimit  int      `toml:"watch_limit"` // how many latest uploads sync checks
-	NoWeights   bool     `toml:"no_weights"`  // skip the fitted start-edge model
+	WatchLimit  int      `toml:"watch_limit"` // legacy alias for latest
+	Latest      int      `toml:"latest"`
+	Keep        int      `toml:"keep"`
+	Disabled    bool     `toml:"disabled"`
+	NoWeights   bool     `toml:"no_weights"`   // skip the fitted start-edge model
+	KeepTail    bool     `toml:"keep_tail"`    // keep audio after the last spoken caption, such as closing music
+	BitrateKbps int      `toml:"bitrate_kbps"` // zero inherits the global audio bitrate
+}
+
+type Audio struct {
+	BitrateKbps int `toml:"bitrate_kbps"`
+}
+
+type Publishing struct {
+	Backend   string `toml:"backend"` // r2 or filesystem; omitted preserves R2 setups
+	Directory string `toml:"directory"`
+	BaseURL   string `toml:"base_url"`
+}
+
+type Serve struct {
+	Listen string `toml:"listen"`
 }
 
 type Config struct {
-	Rules    []Rule    `toml:"rules"`
-	Jev      Jev       `toml:"jev"`
-	Channels []Channel `toml:"channels"`
+	Publishing Publishing `toml:"publishing"`
+	Serve      Serve      `toml:"serve"`
+	Audio      Audio      `toml:"audio"`
+	Rules      []Rule     `toml:"rules"`
+	Jev        Jev        `toml:"jev"`
+	Channels   []Channel  `toml:"channels"`
 }
 
-// DefaultRules cover the three things almost everyone wants gone. Add your own
+// DefaultRules cover the things almost everyone wants gone. Add your own
 // in config; they are just prose.
 func DefaultRules() []Rule {
 	return []Rule{
@@ -84,12 +109,12 @@ func DefaultRules() []Rule {
 		},
 		{
 			ID:        "selfpromo",
-			Prompt:    "Unpaid promotion of the creator's own Patreon, merch, membership, newsletter, or other channels",
+			Prompt:    "Unpaid promotion of the creator's own channel: asking viewers to like, subscribe, comment or hit the bell, or promoting their Patreon, merch, membership, newsletter or other channels",
 			Threshold: 0.85,
 		},
 		{
-			ID:        "interaction",
-			Prompt:    "Asking viewers to like, subscribe, comment, join, or hit the bell, with no other content",
+			ID:        "credits",
+			Prompt:    "Housekeeping about the show itself rather than its subject: production credits (who produced, edited, mixed or scored it), network identification, how to contact the show by email or hotline, and an announcement of a break (\"we'll be right back\") with any music around it. A teaser for an upcoming episode, a sign-on or sign-off, and a thank-you to a guest are not part of it",
 			Threshold: 0.85,
 		},
 	}
@@ -98,18 +123,22 @@ func DefaultRules() []Rule {
 // Default returns a usable config with no file present.
 func Default() *Config {
 	return &Config{
-		Rules: DefaultRules(),
+		Publishing: Publishing{Backend: "r2"},
+		Serve:      Serve{Listen: "127.0.0.1:8080"},
+		Rules:      DefaultRules(),
+		Audio:      Audio{BitrateKbps: render.DefaultBitrateKbps},
 		Jev: Jev{
-			Provider: "openrouter",
 			Model:    "typesafe/jev-1.13",
 			Parallel: 4,
-			Weights:  "data/weights.json",
 		},
 	}
 }
 
-// Load reads path, filling anything absent from the defaults. A missing file is
-// not an error: it means run on defaults.
+// ErrNoConfig means the config file does not exist. Commands other than init
+// and channel add need one, because it is where channels are defined.
+var ErrNoConfig = errors.New("no config")
+
+// Load reads path, filling anything absent from the defaults.
 func Load(path string) (*Config, error) {
 	cfg := Default()
 
@@ -126,15 +155,86 @@ func Load(path string) (*Config, error) {
 	}
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return cfg, nil
+		return nil, fmt.Errorf("%w at %s; run `shearcast init` to create one", ErrNoConfig, path)
 	}
 	if err != nil {
 		return nil, err
 	}
 
+	cfg, err = decode(data, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.Publishing.Directory != "" && !filepath.IsAbs(cfg.Publishing.Directory) {
+		cfg.Publishing.Directory = filepath.Join(dir, cfg.Publishing.Directory)
+	}
+	// Fitted weights are optional: without any, the start edge uses the plain
+	// predicate. A configured path must exist; LoadWeights reports it if not.
+	switch {
+	case cfg.Jev.Weights == "":
+		if beside := filepath.Join(dir, "weights.json"); fileExists(beside) {
+			cfg.Jev.Weights = beside
+		}
+	case !filepath.IsAbs(cfg.Jev.Weights):
+		cfg.Jev.Weights = filepath.Join(dir, cfg.Jev.Weights)
+	}
+	// End weights are fitted alongside the start ones, so by default they are
+	// looked for beside them.
+	switch {
+	case cfg.Jev.EndWeights == "" && cfg.Jev.Weights != "":
+		if beside := filepath.Join(filepath.Dir(cfg.Jev.Weights), "end-weights.json"); fileExists(beside) {
+			cfg.Jev.EndWeights = beside
+		}
+	case cfg.Jev.EndWeights != "" && !filepath.IsAbs(cfg.Jev.EndWeights):
+		cfg.Jev.EndWeights = filepath.Join(dir, cfg.Jev.EndWeights)
+	}
+	return cfg, nil
+}
+
+func decode(data []byte, cfg *Config) (*Config, error) {
 	var file Config
-	if _, err := toml.Decode(string(data), &file); err != nil {
-		return nil, fmt.Errorf("parsing %s: %w", path, err)
+	md, err := toml.Decode(string(data), &file)
+	if err != nil {
+		return nil, fmt.Errorf("parsing config: %w", err)
+	}
+	for _, key := range []string{"provider", "base_url"} {
+		if md.IsDefined("jev", key) {
+			return nil, fmt.Errorf("jev.%s is no longer supported; remove it and use OPENROUTER_API_KEY", key)
+		}
+	}
+	// Decode presence separately: explicit zero must not mean unlimited.
+	var raw struct {
+		Channels []map[string]any `toml:"channels"`
+	}
+	if _, err := toml.Decode(string(data), &raw); err != nil {
+		return nil, err
+	}
+	for _, ch := range raw.Channels {
+		for _, key := range []string{"latest", "keep", "watch_limit"} {
+			if value, ok := ch[key]; ok {
+				n, ok := value.(int64)
+				if !ok || n <= 0 {
+					return nil, fmt.Errorf("channel %v: %s must be a positive finite integer", ch["slug"], key)
+				}
+			}
+		}
+		if _, a := ch["latest"]; a {
+			if _, b := ch["watch_limit"]; b {
+				return nil, fmt.Errorf("channel %v: use latest instead of watch_limit, not both", ch["slug"])
+			}
+		}
+	}
+	if md.IsDefined("audio", "bitrate_kbps") {
+		cfg.Audio = file.Audio
+	}
+	if md.IsDefined("publishing") {
+		cfg.Publishing = file.Publishing
+		if cfg.Publishing.Backend == "" {
+			cfg.Publishing.Backend = "r2"
+		}
+	}
+	if md.IsDefined("serve", "listen") {
+		cfg.Serve = file.Serve
 	}
 	if len(file.Rules) > 0 {
 		cfg.Rules = file.Rules
@@ -151,6 +251,15 @@ func Load(path string) (*Config, error) {
 }
 
 func (c *Config) validate() error {
+	if c.Publishing.Backend != "r2" && c.Publishing.Backend != "filesystem" {
+		return fmt.Errorf("publishing.backend must be r2 or filesystem")
+	}
+	if c.Publishing.Backend == "filesystem" && (c.Publishing.Directory == "" || c.Publishing.BaseURL == "") {
+		return fmt.Errorf("filesystem publishing requires publishing.directory and publishing.base_url")
+	}
+	if err := render.ValidateBitrate(c.Audio.BitrateKbps); err != nil {
+		return fmt.Errorf("audio.bitrate_kbps: %w", err)
+	}
 	seen := map[string]bool{}
 	for _, r := range c.Rules {
 		if r.ID == "" || r.Prompt == "" {
@@ -166,13 +275,27 @@ func (c *Config) validate() error {
 	}
 	slugs := map[string]bool{}
 	for _, ch := range c.Channels {
-		if ch.Slug == "" {
-			return fmt.Errorf("channel %q needs a slug", ch.Name)
+		if ch.Latest < 0 || ch.WatchLimit < 0 || ch.Keep < 0 || ch.RetentionLimit() < ch.SelectionLimit() {
+			return fmt.Errorf("channel %q: latest must be positive and keep must be at least latest", ch.Slug)
 		}
-		if slugs[ch.Slug] {
-			return fmt.Errorf("duplicate channel slug %q", ch.Slug)
+		if ch.BitrateKbps != 0 {
+			if err := render.ValidateBitrate(ch.BitrateKbps); err != nil {
+				return fmt.Errorf("channel %q bitrate_kbps: %w", ch.Name, err)
+			}
 		}
-		slugs[ch.Slug] = true
+		if !ValidSlug(ch.Slug) {
+			return fmt.Errorf("channel %q needs a slug containing only letters, digits, hyphens or underscores", ch.Name)
+		}
+		// Case-insensitive because a macOS publishing directory is.
+		if strings.EqualFold(ch.Slug, subscribe.Dir) {
+			return fmt.Errorf("channel %q: slug %q is reserved for the subscription page", ch.Name, ch.Slug)
+		}
+		// Also case-insensitive: Show and show would share a directory there
+		// while state kept them as separate libraries.
+		if slugs[strings.ToLower(ch.Slug)] {
+			return fmt.Errorf("duplicate channel slug %q (slugs must differ by more than letter case)", ch.Slug)
+		}
+		slugs[strings.ToLower(ch.Slug)] = true
 		for _, id := range ch.Rules {
 			if !seen[id] {
 				return fmt.Errorf("channel %q references unknown rule %q", ch.Name, id)
@@ -182,31 +305,51 @@ func (c *Config) validate() error {
 	return nil
 }
 
-// BaseURL resolves the provider name to an endpoint.
-func (j Jev) ResolveBaseURL() string {
-	if j.BaseURL != "" {
-		return j.BaseURL
+func ValidSlug(slug string) bool {
+	if slug == "" {
+		return false
 	}
-	if strings.EqualFold(j.Provider, "typesafe") {
-		return jev.TypeSafeURL
+	for _, r := range slug {
+		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_') {
+			return false
+		}
 	}
-	return jev.OpenRouterURL
+	return true
 }
 
-// APIKey reads the key for the configured provider from the environment.
-func (j Jev) APIKey() (string, error) {
-	var names []string
-	if strings.EqualFold(j.Provider, "typesafe") {
-		names = []string{"TYPESAFE_API_KEY"}
-	} else {
-		names = []string{"OPENROUTER_API_KEY", "OPENROUTER_KEY"}
+func (ch Channel) SelectionLimit() int {
+	if ch.Latest != 0 {
+		return ch.Latest
 	}
-	for _, n := range names {
+	if ch.WatchLimit != 0 {
+		return ch.WatchLimit
+	}
+	return 5
+}
+
+func (ch Channel) RetentionLimit() int {
+	if ch.Keep != 0 {
+		return ch.Keep
+	}
+	return 10
+}
+
+// OutputBitrate resolves a channel override against the global setting.
+func (c *Config) OutputBitrate(ch Channel) int {
+	if ch.BitrateKbps != 0 {
+		return ch.BitrateKbps
+	}
+	return c.Audio.BitrateKbps
+}
+
+// APIKey reads the OpenRouter key. OPENROUTER_KEY remains a legacy alias.
+func (j Jev) APIKey() (string, error) {
+	for _, n := range []string{"OPENROUTER_API_KEY", "OPENROUTER_KEY"} {
 		if v := os.Getenv(n); v != "" {
 			return v, nil
 		}
 	}
-	return "", fmt.Errorf("set %s (or put it in .env next to your config)", strings.Join(names, " or "))
+	return "", fmt.Errorf("set OPENROUTER_API_KEY (or put it in .env next to your config)")
 }
 
 // DetectOptions converts the config into detector options.
@@ -223,6 +366,9 @@ func (c *Config) DetectOptions(ruleIDs []string) detect.Options {
 	setF(&o.ScanWindow, j.ScanWindow)
 	setF(&o.ScanMaxWindow, j.ScanMaxWindow)
 	setF(&o.AnchorThreshold, j.AnchorThreshold)
+	setF(&o.WeakAnchorThreshold, j.WeakThreshold)
+	setF(&o.LocalizedThreshold, j.LocalThreshold)
+	setF(&o.OutroTrimFloor, j.OutroTrimFloor)
 	setF(&o.LeadInSpan, j.LeadInSpan)
 	setF(&o.TailSpan, j.TailSpan)
 	setF(&o.ContextSpan, j.ContextSpan)
@@ -234,9 +380,6 @@ func (c *Config) DetectOptions(ruleIDs []string) detect.Options {
 	setI(&o.MaxCandidates, j.MaxCandidates)
 	setI(&o.Parallel, j.Parallel)
 	setI(&o.EndFitWindow, j.EndFitWindow)
-	if j.Verify != nil {
-		o.Verify = *j.Verify
-	}
 	return o
 }
 
@@ -284,12 +427,6 @@ func (ch Channel) FeedCategory() string {
 }
 
 func mergeJev(dst *Jev, src Jev) {
-	if src.Provider != "" {
-		dst.Provider = src.Provider
-	}
-	if src.BaseURL != "" {
-		dst.BaseURL = src.BaseURL
-	}
 	if src.Model != "" {
 		dst.Model = src.Model
 	}
@@ -298,12 +435,16 @@ func mergeJev(dst *Jev, src Jev) {
 	}
 	dst.ScanWindow, dst.ScanMaxWindow = src.ScanWindow, src.ScanMaxWindow
 	dst.ScanBatchSize, dst.AnchorThreshold = src.ScanBatchSize, src.AnchorThreshold
+	dst.WeakThreshold = src.WeakThreshold
+	dst.LocalThreshold, dst.OutroTrimFloor = src.LocalThreshold, src.OutroTrimFloor
 	dst.LeadInSpan, dst.TailSpan = src.LeadInSpan, src.TailSpan
 	dst.MinSentence, dst.MaxCandidates = src.MinSentence, src.MaxCandidates
 	dst.ContextSpan, dst.MinRegion = src.ContextSpan, src.MinRegion
 	dst.EndFitWindow = src.EndFitWindow
 	dst.ClusterBridgeGap, dst.SegmentMergeGap = src.ClusterBridgeGap, src.SegmentMergeGap
-	dst.Verify = src.Verify
+	if src.EndWeights != "" {
+		dst.EndWeights = src.EndWeights
+	}
 	if src.Weights != "" {
 		dst.Weights = src.Weights
 	}
@@ -350,4 +491,9 @@ func loadDotenv(path string) {
 			os.Setenv(key, strings.Trim(strings.TrimSpace(value), `"'`))
 		}
 	}
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }

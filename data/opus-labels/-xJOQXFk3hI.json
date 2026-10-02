@@ -1,0 +1,108 @@
+{
+  "video_id": "-xJOQXFk3hI",
+  "channel": "hutchins",
+  "title": "My Points & Miles Playbook: What I Do and What I Skip",
+  "duration": 3721,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 43,
+      "end": 48,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "And if so, definitely check out their show, Nerd Wallet Smart Travel, anywhere you're listening to podcasts.",
+      "last_line": "And if so, definitely check out their show, Nerd Wallet Smart Travel, anywhere you're listening to podcasts.",
+      "advertiser": null,
+      "reason": "Cross-plug for the NerdWallet Smart Travel podcast whose interview is being rebroadcast."
+    },
+    {
+      "category": "selfpromo",
+      "start": 48,
+      "end": 54,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "And if you're new here and you want to keep upgrading your money, points in life, click follow or subscribe.",
+      "last_line": "And if you're new here and you want to keep upgrading your money, points in life, click follow or subscribe.",
+      "advertiser": null,
+      "reason": "Follow/subscribe request."
+    },
+    {
+      "category": "sponsor",
+      "start": 681,
+      "end": 751,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Gusto.",
+      "last_line": "That's three months of free payroll at gusto. com/all the hacks. One more time, gusto. com/all thehacks.",
+      "advertiser": "Gusto",
+      "reason": "Host-read Gusto payroll ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 751,
+      "end": 820,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Guelt.",
+      "last_line": "Again, that's allthehacks. comt. >> Okay.",
+      "advertiser": "Gelt",
+      "reason": "Host-read Gelt CPA firm ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 1725,
+      "end": 1787,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> This episode is brought to you by Element.",
+      "last_line": "Find your favorite element flavor or share with a friend. That's alltheacks. com/elementlmnt.",
+      "advertiser": "LMNT",
+      "reason": "Host-read LMNT electrolyte drink ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 1787,
+      "end": 1856,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Whisper Flow.",
+      "last_line": "Link is in the description.",
+      "advertiser": "Wispr Flow",
+      "reason": "Host-read Wispr Flow dictation app ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 2631,
+      "end": 2716,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Built.",
+      "last_line": "So, please consider supporting those who support us.",
+      "advertiser": "Bilt",
+      "reason": "Host-read Bilt card ad plus the partner deals-page pitch that follows it."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3708,
+      "end": 3713,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Again, if you want to check out their show, it is the NerdWallet Smart Travel Podcast.",
+      "last_line": "Again, if you want to check out their show, it is the NerdWallet Smart Travel Podcast.",
+      "advertiser": null,
+      "reason": "Outro cross-plug for the NerdWallet podcast."
+    },
+    {
+      "category": "credits",
+      "start": 3713,
+      "end": 3718,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "And as always, email for me is podcastallhacks. com. I read everyone.",
+      "last_line": "And as always, email for me is podcastallhacks. com. I read everyone.",
+      "reason": "Show contact email and 'I read every one' line, followed by the sign-off.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

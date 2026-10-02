@@ -1,0 +1,20 @@
+{"video_id": "3gXb_o7m-3U", "channel": "vergecast", "title": "Googlebooks are coming for your Mac | The Vergecast", "duration": 2046, "segments": [
+  {"category": "sponsor", "start": 132, "end": 210, "confidence": "high",
+   "borderline": false, "first_line": "[music] Support for the show comes from Amazon Prime.", "last_line": "Shop new deals every day this prime big deal days October 6th and 7th.",
+   "advertiser": "Amazon Prime", "reason": "Inserted Prime Big Deal Days ad between the news roundup and the interview."},
+  {"category": "sponsor", "start": 1139, "end": 1214, "confidence": "high",
+   "borderline": false, "first_line": "Support for the show comes from MasterClass.", "last_line": "Head to masterclass.com/verge to see the latest offer.",
+   "advertiser": "MasterClass", "reason": "Host-read MasterClass spot with promo URL in the middle of the interview."},
+  {"category": "sponsor", "start": 1214, "end": 1288, "confidence": "high",
+   "borderline": false, "first_line": "Support for the show comes from Amazon Prime.", "last_line": "Shop new deals every day this Prime big deal days, October 6th and 7th.",
+   "advertiser": "Amazon Prime", "reason": "Repeat of the Prime Big Deal Days ad directly after the MasterClass spot."},
+  {"category": "credits", "start": 2024, "end": 2029, "confidence": "high",
+   "borderline": false, "first_line": "Let us know what you think.", "last_line": "Call the hotline 866 Verge11 or email vergecastverge.com.",
+   "advertiser": null, "reason": "Show contact info (hotline and email)."},
+  {"category": "selfpromo", "start": 2029, "end": 2035, "confidence": "high",
+   "borderline": false, "first_line": "[music] And to support everything we do here and to get ad free podcast, subscribe to the Verge.", "last_line": "[music] And to support everything we do here and to get ad free podcast, subscribe to the Verge.",
+   "advertiser": null, "reason": "Pitch for a Verge subscription."},
+  {"category": "credits", "start": 2035, "end": 2046, "confidence": "high",
+   "borderline": false, "first_line": "We're part of the Vox Media Podcast Network.", "last_line": "The Vergecast is produced by Josh Kahas, Eric Gomez, Brandon Kefir, and Travis Larchuk. See you next time. [music] Rock and roll.",
+   "advertiser": null, "reason": "Network identification and producer credits running to the end."}
+]}

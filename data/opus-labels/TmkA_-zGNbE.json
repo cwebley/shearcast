@@ -1,0 +1,19 @@
+{
+  "video_id": "TmkA_-zGNbE",
+  "channel": "hank",
+  "title": "Most of the Earth is Covered in Glass",
+  "duration": 1318,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 1290,
+      "end": 1318,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Where can I we find you on the internet?",
+      "last_line": "Thank you for coming out and shooting all those videos and also for pitching them and writing them and making them with the team. >> Yes, thank you. It was great.",
+      "advertiser": null,
+      "reason": "Guest gives her Instagram/TikTok/YouTube handle and host points viewers to her SciShow residency videos, running to the end."
+    }
+  ]
+}

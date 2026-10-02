@@ -1,0 +1,76 @@
+{
+  "video_id": "ZWA9h334GoQ",
+  "channel": "vergecast",
+  "title": "Meta and Snap battle for your face | The Vergecast",
+  "duration": 1891,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 131,
+      "end": 205,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> Support for the show comes from Amazon Prime.",
+      "last_line": "Shop new deals every day this Prime Big Deal Days, October 6th and 7th.",
+      "advertiser": "Amazon Prime",
+      "reason": "Inserted Amazon Prime Big Deal Days ad after the news roundup."
+    },
+    {
+      "category": "sponsor",
+      "start": 1284,
+      "end": 1358,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> Support for the show comes from Amazon Prime.",
+      "last_line": "Shop new deals every day this Prime Big Deal Days, October 6th and 7th.",
+      "advertiser": "Amazon Prime",
+      "reason": "Repeat of the inserted Amazon Prime Big Deal Days ad at the mid-roll break."
+    },
+    {
+      "category": "sponsor",
+      "start": 1358,
+      "end": 1431,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Support for the show comes from Square.",
+      "last_line": "Run your business smarter with Square. Get started today.",
+      "advertiser": "Square",
+      "reason": "Inserted Square ad directly following the Amazon ad in the same break."
+    },
+    {
+      "category": "credits",
+      "start": 1866,
+      "end": 1875,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Uh this has been the Vergecast.",
+      "last_line": "Call the hotline [music] 866-VERGE11 or email vergecast@theverge. com.",
+      "reason": "Show identification plus hotline and email contact info, ending where the subscribe promo begins.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "selfpromo",
+      "start": 1868,
+      "end": 1881,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "Let us know what you think.",
+      "last_line": "We're part of the Vox Media Podcast Network.",
+      "advertiser": null,
+      "reason": "Outro asking for feedback via hotline/email and pitching a Verge subscription for ad-free podcasts; credits follow."
+    },
+    {
+      "category": "credits",
+      "start": 1879,
+      "end": 1891,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We're part of the Vox Media Podcast Network.",
+      "last_line": "The Vergecast is produced by Josh Cahass, Eric Gomez, Brandon Keifer, and Travis Larchuk. See you next time. Rock and roll.",
+      "reason": "Network identification and production credits running to the end of the video (the sign-off shares the final caption line).",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

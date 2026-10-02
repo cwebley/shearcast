@@ -1,0 +1,19 @@
+{
+  "video_id": "iuccfEQgIeY",
+  "channel": "primetime",
+  "title": "They can’t take it anymore",
+  "duration": 596,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 95,
+      "end": 135,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "But first, a quick thank you from the sponsor.",
+      "last_line": "The ad is the linear engine.",
+      "advertiser": "Linear",
+      "reason": "Host-read Linear ad."
+    }
+  ]
+}

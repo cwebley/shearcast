@@ -1,8 +1,10 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -15,13 +17,15 @@ func writeConfig(t *testing.T, body string) string {
 	return path
 }
 
-func TestLoadMissingFileReturnsDefaults(t *testing.T) {
-	cfg, err := Load(filepath.Join(t.TempDir(), "absent.toml"))
-	if err != nil {
-		t.Fatalf("Load: %v", err)
+// A missing file is an error, not a silent run on defaults with no channels.
+func TestLoadMissingFileSaysToRunInit(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "absent.toml")
+	_, err := Load(path)
+	if !errors.Is(err, ErrNoConfig) {
+		t.Fatalf("Load: got %v, want ErrNoConfig", err)
 	}
-	if len(cfg.Rules) != len(DefaultRules()) {
-		t.Errorf("got %d rules, want the %d built-in defaults", len(cfg.Rules), len(DefaultRules()))
+	if !strings.Contains(err.Error(), path) || !strings.Contains(err.Error(), "shearcast init") {
+		t.Errorf("error %q should name %s and suggest shearcast init", err, path)
 	}
 }
 
@@ -79,6 +83,18 @@ slug = "dup"
 	}
 }
 
+func TestLoadRejectsSubscriptionPageSlug(t *testing.T) {
+	path := writeConfig(t, `
+[[channels]]
+name = "A"
+url = "https://example.com/a"
+slug = "Subscribe"
+`)
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "reserved") {
+		t.Errorf("err = %v, want the reserved subscription slug rejected", err)
+	}
+}
+
 func TestLoadRejectsChannelReferencingUnknownRule(t *testing.T) {
 	path := writeConfig(t, `
 [[channels]]
@@ -100,7 +116,6 @@ prompt = "a paid promotion"
 threshold = 0.8
 
 [jev]
-provider = "openrouter"
 model = "typesafe/jev-1.13"
 
 [[channels]]
@@ -141,5 +156,73 @@ func TestChannelBySlugReportsMissing(t *testing.T) {
 	cfg := Default()
 	if _, ok := cfg.ChannelBySlug("nope"); ok {
 		t.Error("expected ChannelBySlug to report false for an unconfigured slug")
+	}
+}
+
+func TestOutputBitrateDefaultsAndOverrides(t *testing.T) {
+	for _, tc := range []struct {
+		name, body string
+		want       int
+	}{
+		{"default", "", 128},
+		{"global", "[audio]\nbitrate_kbps = 96", 96},
+		{"channel", "[audio]\nbitrate_kbps = 96\n[[channels]]\nslug = 'test'\nbitrate_kbps = 64", 64},
+		{"inherit", "[audio]\nbitrate_kbps = 96\n[[channels]]\nslug = 'test'\nbitrate_kbps = 0", 96},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg, err := Load(writeConfig(t, tc.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			ch, _ := cfg.ChannelBySlug("test")
+			if got := cfg.OutputBitrate(ch); got != tc.want {
+				t.Fatalf("bitrate = %d, want %d", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestLoadRejectsInvalidBitrates(t *testing.T) {
+	for _, body := range []string{
+		"[audio]\nbitrate_kbps = 0", "[audio]\nbitrate_kbps = 31",
+		"[audio]\nbitrate_kbps = 321", "[audio]\nbitrate_kbps = -1",
+		"[[channels]]\nslug = 'test'\nbitrate_kbps = -1",
+		"[[channels]]\nslug = 'test'\nbitrate_kbps = 321",
+	} {
+		if _, err := Load(writeConfig(t, body)); err == nil || !strings.Contains(err.Error(), "bitrate") {
+			t.Errorf("Load(%q) = %v, want bitrate error", body, err)
+		}
+	}
+}
+
+func TestLoadRejectsRemovedProviderSettings(t *testing.T) {
+	for _, setting := range []string{"provider = 'openrouter'", "provider = 'typesafe'", "base_url = 'https://example.com'"} {
+		if _, err := Load(writeConfig(t, "[jev]\n"+setting)); err == nil || !strings.Contains(err.Error(), "no longer supported") {
+			t.Errorf("Load(%q) = %v, want migration error", setting, err)
+		}
+	}
+}
+
+func TestAPIKeyUsesOpenRouterWithLegacyAlias(t *testing.T) {
+	t.Setenv("OPENROUTER_API_KEY", "canonical")
+	t.Setenv("OPENROUTER_KEY", "legacy")
+	t.Setenv("TYPESAFE_API_KEY", "ignored")
+	if got, err := (Jev{}).APIKey(); err != nil || got != "canonical" {
+		t.Fatalf("key = %q, %v", got, err)
+	}
+	t.Setenv("OPENROUTER_API_KEY", "")
+	if got, err := (Jev{}).APIKey(); err != nil || got != "legacy" {
+		t.Fatalf("alias = %q, %v", got, err)
+	}
+	t.Setenv("OPENROUTER_KEY", "")
+	if _, err := (Jev{}).APIKey(); err == nil || !strings.Contains(err.Error(), "OPENROUTER_API_KEY") {
+		t.Fatalf("missing key error = %v", err)
+	}
+}
+
+func TestSlugsMustDifferByMoreThanCase(t *testing.T) {
+	// A case-insensitive filesystem would give both channels one directory.
+	if _, err := Load(writeConfig(t, "[[channels]]\nslug='Show'\n[[channels]]\nslug='show'\n")); err == nil {
+		t.Fatal("accepted Show and show")
 	}
 }

@@ -1,12 +1,4 @@
-// Package jev talks to a System One decision model.
-//
-// Two providers serve the same wire format, so the only difference is the base
-// URL and the model id:
-//
-//	TypeSafe direct  POST https://api.typesafe.ai/v1/systemone
-//	OpenRouter       POST https://openrouter.ai/api/alpha/decisions   (alpha)
-//
-// Both take {model, state, questions} and return {model, answers, usage}.
+// Package jev talks to Jev through OpenRouter's decisions endpoint.
 package jev
 
 import (
@@ -20,13 +12,15 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/cwebley/shearcast/internal/usage"
 )
 
 const (
-	TypeSafeURL   = "https://api.typesafe.ai/v1/systemone"
 	OpenRouterURL = "https://openrouter.ai/api/alpha/decisions"
 
-	// DefaultInputCostPerMTok is the published rate, identical on both providers.
+	// DefaultInputCostPerMTok is Jev's input rate verified on 2026-09-23.
+	// New calculations use usage.ModelRate to retain model and source provenance.
 	DefaultInputCostPerMTok = 0.042
 )
 
@@ -89,8 +83,9 @@ func (a Answer) P(key string) float64 {
 }
 
 type Usage struct {
-	InputTokens  int `json:"input_tokens"`
-	OutputTokens int `json:"output_tokens"`
+	InputTokens  int      `json:"input_tokens"`
+	OutputTokens int      `json:"output_tokens"`
+	Cost         *float64 `json:"cost,omitempty"`
 }
 
 type Response struct {
@@ -106,30 +101,26 @@ type Batch struct {
 }
 
 // Stats accumulates what a run cost, for reporting.
-type Stats struct {
-	Calls       int
-	Questions   int
-	InputTokens int
-	Wall        time.Duration
-	Cost        float64
-}
+type Stats = usage.Summary
 
 type Config struct {
-	BaseURL          string
-	APIKey           string
-	Model            string
-	MaxRetries       int
-	Timeout          time.Duration
-	InputCostPerMTok float64
-	HTTPClient       *http.Client
+	BaseURL    string // internal override for HTTP tests
+	APIKey     string
+	Model      string
+	MaxRetries int
+	Timeout    time.Duration
+	Rate       *usage.Rate // optional explicit rate, including a genuine zero rate
+	HTTPClient *http.Client
 }
 
 type Client struct {
 	cfg  Config
 	http *http.Client
 
-	mu    sync.Mutex
-	stats Stats
+	mu        sync.Mutex
+	stats     Stats
+	recorder  func(Stats) error
+	recordErr error
 }
 
 func New(cfg Config) *Client {
@@ -142,8 +133,12 @@ func New(cfg Config) *Client {
 	if cfg.Timeout == 0 {
 		cfg.Timeout = 60 * time.Second
 	}
-	if cfg.InputCostPerMTok == 0 {
-		cfg.InputCostPerMTok = DefaultInputCostPerMTok
+	if cfg.Rate == nil {
+		cfg.Rate = usage.ModelRate(cfg.Model)
+	}
+	if cfg.Rate != nil {
+		rate := *cfg.Rate
+		cfg.Rate = &rate
 	}
 	httpClient := cfg.HTTPClient
 	if httpClient == nil {
@@ -156,7 +151,25 @@ func New(cfg Config) *Client {
 func (c *Client) Stats() Stats {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.stats
+	return c.stats.Clone()
+}
+
+// RecordUsage installs a synchronous checkpoint callback before processing.
+// Calls are serialized with statistics updates. A failed checkpoint stops new
+// requests, while already-dispatched requests still report their outcomes.
+func (c *Client) RecordUsage(record func(Stats) error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.recorder, c.recordErr = record, nil
+}
+
+func (c *Client) checkpoint() error {
+	if c.recorder != nil {
+		if err := c.recorder(c.stats.Clone()); err != nil {
+			c.recordErr = errors.Join(c.recordErr, usage.ErrCheckpoint, err)
+		}
+	}
+	return c.recordErr
 }
 
 // Ask sends one batch of questions against one state.
@@ -169,9 +182,11 @@ func (c *Client) Ask(ctx context.Context, state string, questions map[string]Que
 		return nil, fmt.Errorf("encoding request: %w", err)
 	}
 
-	started := time.Now()
 	var lastErr error
 	for attempt := 0; attempt <= c.cfg.MaxRetries; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		if attempt > 0 {
 			select {
 			case <-ctx.Done():
@@ -179,26 +194,81 @@ func (c *Client) Ask(ctx context.Context, state string, questions map[string]Que
 			case <-time.After(backoff(attempt)):
 			}
 		}
-		resp, err := c.attempt(ctx, body)
+		resp, err := c.attempt(ctx, body, len(questions))
 		if err == nil {
-			c.record(len(questions), resp.Usage.InputTokens, time.Since(started))
 			return resp, nil
 		}
 		lastErr = err
-		if !retryable(err) {
+		if errors.Is(err, usage.ErrCheckpoint) || !retryable(err) {
 			return nil, err
 		}
 	}
 	return nil, fmt.Errorf("after %d attempts: %w", c.cfg.MaxRetries+1, lastErr)
 }
 
-func (c *Client) attempt(ctx context.Context, body []byte) (*Response, error) {
+func (c *Client) attempt(ctx context.Context, body []byte, questions int) (result *Response, resultErr error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.BaseURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.cfg.APIKey)
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	c.mu.Lock()
+	if c.recordErr != nil {
+		err := c.recordErr
+		c.mu.Unlock()
+		return nil, err
+	}
+	c.stats.Attempts++
+	c.stats.Unresolved++
+	err = c.checkpoint()
+	if err != nil {
+		c.stats.Attempts--
+		c.stats.Unresolved--
+	}
+	c.mu.Unlock()
+	if err != nil {
+		return nil, fmt.Errorf("checkpointing model request: %w", err)
+	}
+	started := time.Now()
+	var payload []byte
+	defer func() {
+		// Decode usage separately so malformed answers cannot discard billing
+		// observations. Missing fields are not decoded as zero.
+		var envelope struct {
+			Usage json.RawMessage `json:"usage"`
+		}
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(payload, &envelope) == nil {
+			_ = json.Unmarshal(envelope.Usage, &fields)
+		}
+		var input, output *int
+		var cost *float64
+		if err := json.Unmarshal(fields["input_tokens"], &input); err != nil {
+			input = nil
+		}
+		if err := json.Unmarshal(fields["output_tokens"], &output); err != nil {
+			output = nil
+		}
+		if err := json.Unmarshal(fields["cost"], &cost); err != nil {
+			cost = nil
+		}
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.stats.Unresolved--
+		c.stats.Wall += time.Since(started)
+		if resultErr == nil {
+			c.stats.Calls++
+			c.stats.Questions += questions
+		}
+		c.stats.Observe(input, output, cost, c.cfg.Rate)
+		if err := c.checkpoint(); err != nil {
+			resultErr = errors.Join(resultErr, fmt.Errorf("checkpointing model usage: %w", err))
+		}
+	}()
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -206,7 +276,7 @@ func (c *Client) attempt(ctx context.Context, body []byte) (*Response, error) {
 	}
 	defer resp.Body.Close()
 
-	payload, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+	payload, err = io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
 		return nil, &apiError{Status: resp.StatusCode, Body: err.Error()}
 	}
@@ -219,16 +289,6 @@ func (c *Client) attempt(ctx context.Context, body []byte) (*Response, error) {
 		return nil, fmt.Errorf("decoding response: %w (body: %.400s)", err, payload)
 	}
 	return &out, nil
-}
-
-func (c *Client) record(questions, tokens int, wall time.Duration) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.stats.Calls++
-	c.stats.Questions += questions
-	c.stats.InputTokens += tokens
-	c.stats.Wall += wall
-	c.stats.Cost += float64(tokens) / 1e6 * c.cfg.InputCostPerMTok
 }
 
 type apiError struct {

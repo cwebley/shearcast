@@ -2,7 +2,9 @@
 # in internal/config/config.go.
 
 # Rules are prose, not a fixed vocabulary. Leaving this table out entirely
-# uses the three built-in defaults: sponsor, selfpromo, interaction.
+# uses the three built-in defaults: sponsor, selfpromo and credits. A window
+# anchors on its total probability across every rule, so rules that often share
+# a window (a subscribe ask, then the producers' names) don't split the vote.
 [[rules]]
 id = "sponsor"
 prompt = "A paid promotion: the lead-in, the pitch, and the offer for a product or service whose maker paid for the placement"
@@ -10,39 +12,69 @@ threshold = 0.80
 
 [[rules]]
 id = "selfpromo"
-prompt = "Unpaid promotion of the creator's own Patreon, merch, membership, newsletter, or other channels"
+prompt = "Unpaid promotion of the creator's own channel: asking viewers to like, subscribe, comment or hit the bell, or promoting their Patreon, merch, membership, newsletter or other channels"
 threshold = 0.85
 
 [[rules]]
-id = "interaction"
-prompt = "Asking viewers to like, subscribe, comment, join, or hit the bell, with no other content"
+id = "credits"
+prompt = "Housekeeping about the show itself rather than its subject: production credits (who produced, edited, mixed or scored it), network identification, how to contact the show by email or hotline, and an announcement of a break (\"we'll be right back\") with any music around it. A teaser for an upcoming episode, a sign-on or sign-off, and a thank-you to a guest are not part of it"
 threshold = 0.85
 
 [jev]
-provider = "openrouter"
 model = "typesafe/jev-1.13"
 parallel = 4
-weights = "data/weights.json"
+# Fitted start-edge weights. Optional: weights.json beside this file is used
+# when present; otherwise the plain predicate is used. Relative paths resolve
+# beside this file.
+# weights = "weights.json"
+# Fitted end-edge weights. Optional: they only move a closing edge later, past a
+# pitch's tail. end-weights.json beside the start weights is used when present.
+# end_weights = "end-weights.json"
+# Short promos (a subscribe ask, "sponsored by Hilton") are found by asking
+# about single sentences. The defaults below suit most shows.
+# weak_anchor_threshold = 0.01  # windows above this get their sentences checked
+# localized_threshold = 0.95    # how sure a sentence must be to be cut
+# outro_trim_floor = 0.9        # an outro starts at its first sentence this sure
 
-# Each channel becomes its own podcast feed at <slug>/feed.xml in the R2
-# bucket. "rules" selects which rule ids apply here; empty means all of them.
+[audio]
+# AAC target bitrate, 32 through 320 kbps. Applies to newly rendered episodes.
+bitrate_kbps = 128
+
+# Omit this table or use backend = "r2" for existing R2 setups.
+# For local hosting, uncomment all three filesystem settings below.
+# Relative directory paths resolve beside this config, not the working directory.
+[publishing]
+backend = "r2"
+# backend = "filesystem"  # replace the r2 line above
+# directory = "/srv/shearcast/public"
+# base_url = "http://192.168.1.20:8080"  # address reachable from your phone
+
+[serve]
+# Only used by `shearcast serve`. Use 0.0.0.0:8080 for home-LAN listening.
+listen = "127.0.0.1:8080"
+
+# Each channel becomes its own podcast feed at <slug>/feed.xml in the publishing
+# directory or R2 bucket. "rules" selects rule ids; empty means all of them.
 [[channels]]
 name = "History of the Universe"
 url = "https://www.youtube.com/@historyoftheuniverse"
 slug = "hotu"
-title = "History of the Universe (de-sponsored)"
-description = "De-sponsored episodes, for sleep listening."
+title = "History of the Universe (sheared)"
+description = "Sheared episodes, for sleep listening."
 category = "Science"
-watch_limit = 5
+latest = 5 # inspect only the newest five uploads
+keep = 10 # retain published episodes by source chronology; must be >= latest
+bitrate_kbps = 96 # optional channel override; omitted or zero inherits [audio]
 
 [[channels]]
 name = "The PrimeTime"
 url = "https://www.youtube.com/@ThePrimeTimeagen"
 slug = "primetime"
-title = "ThePrimeTimeagen (de-sponsored)"
-description = "De-sponsored episodes, for commute listening."
+title = "ThePrimeTimeagen (sheared)"
+description = "Sheared episodes, for commute listening."
 category = "Technology"
-watch_limit = 5
+latest = 5
+keep = 10
 
 # Podcast-sourced channels (rather than narration-style YouTube videos) tend
 # to have chatty listener-submission segments that fool the fitted start-edge
@@ -52,7 +84,8 @@ watch_limit = 5
 name = "Slate Political Gabfest"
 url = "https://www.youtube.com/@Slate"
 slug = "gabfest"
-title = "Slate Political Gabfest (de-sponsored)"
-description = "De-sponsored episodes, for commute listening."
-watch_limit = 5
+title = "Slate Political Gabfest (sheared)"
+description = "Sheared episodes, for commute listening."
+latest = 5
+keep = 10
 no_weights = true

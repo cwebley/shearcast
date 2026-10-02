@@ -1,0 +1,108 @@
+{
+  "video_id": "dF1D619lv7I",
+  "channel": "hutchins",
+  "title": "The Best Cell Phone Plans (and How I’m Saving Big)",
+  "duration": 3011,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 65,
+      "end": 73,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you enjoy this episode, leave a comment or share it with a friend.",
+      "last_line": "And if you want to keep upgrading your money points in life, click follow or subscribe.",
+      "advertiser": null,
+      "reason": "Intro ask to comment, share, and follow/subscribe."
+    },
+    {
+      "category": "sponsor",
+      "start": 582,
+      "end": 647,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Quint.",
+      "last_line": "Now available in Canada and the UK, too. That's qui nce. com/allthehacks.",
+      "advertiser": "Quince",
+      "reason": "Host-read Quince sponsor spot."
+    },
+    {
+      "category": "sponsor",
+      "start": 647,
+      "end": 716,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Fora.",
+      "last_line": "com/allthehacks and make sure to tell them we sent you foratravel. com/allthehacks.",
+      "advertiser": "Fora",
+      "reason": "Host-read Fora travel sponsor spot immediately following Quince."
+    },
+    {
+      "category": "sponsor",
+      "start": 1595,
+      "end": 1663,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Guelt.",
+      "last_line": "Again, that's alltheacks. com/ge.",
+      "advertiser": "Gelt",
+      "reason": "Host-read Gelt CPA sponsor spot."
+    },
+    {
+      "category": "sponsor",
+      "start": 1663,
+      "end": 1722,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Delete Me.",
+      "last_line": "Again, that's all thehacks. com/deleteme.",
+      "advertiser": "DeleteMe",
+      "reason": "Host-read DeleteMe sponsor spot immediately following Gelt."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2115,
+      "end": 2121,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Though, there is a referral deal.",
+      "last_line": "com/usmobile, that's my referral link. I think you get $30 off. So, there is that.",
+      "advertiser": null,
+      "reason": "Host pitches his own US Mobile referral link within an otherwise editorial carrier discussion."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2206,
+      "end": 2221,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Only exception being I have my referral link at US Mobile.",
+      "last_line": "Hopefully, it'll get you $30 off and that's helpful. So, that's plans.",
+      "advertiser": null,
+      "reason": "Second pitch asking viewers to use the host's US Mobile referral link."
+    },
+    {
+      "category": "sponsor",
+      "start": 2416,
+      "end": 2492,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Zachdoc.",
+      "last_line": "So, please consider supporting those who support us. Okay, two last things.",
+      "advertiser": "Zocdoc",
+      "reason": "Host-read Zocdoc spot followed by a plug for the sponsor deals page asking listeners to support partners."
+    },
+    {
+      "category": "credits",
+      "start": 2990,
+      "end": 2999,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you have any feedback, thoughts, questions on this episode or anything else, you can always reach out podcastallhacks. com. I read every email.",
+      "last_line": "If you have any feedback, thoughts, questions on this episode or anything else, you can always reach out podcastallhacks. com. I read every email.",
+      "reason": "Show contact email and 'I read every email'.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

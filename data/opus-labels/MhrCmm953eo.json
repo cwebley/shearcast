@@ -1,0 +1,52 @@
+{
+  "video_id": "MhrCmm953eo",
+  "channel": "lostdebate",
+  "title": "Will AI Lead to Socialism?",
+  "duration": 3379,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 27,
+      "end": 57,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "if you're interested in this massive conversation about the implications of AI for our safety ... I will be on the majority 54 podcast",
+      "last_line": "uh on majority 54, we're going to talk about the safety debate.",
+      "advertiser": null,
+      "reason": "Host plugs his own appearance on the sibling Majority 54 podcast."
+    },
+    {
+      "category": "selfpromo",
+      "start": 57,
+      "end": 127,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Um my book comes out in less than a week, the invisible list",
+      "last_line": "Um, and uh we'll we'll have a lot more content coming on that front.",
+      "advertiser": null,
+      "reason": "Host pitches pre-orders of his book and his book-tour events."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3354,
+      "end": 3369,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Um Matt, where can folks find your work? Uh people's policy. org is the think tank.",
+      "last_line": "I also have a labor law newsletter if you're interested in that, which is nlrbedge. com.",
+      "advertiser": null,
+      "reason": "Guest plugs his think tank site and newsletter at the host's prompt."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3371,
+      "end": 3379,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Remember to rate, review, subscribe.",
+      "last_line": "Again, you can pre-order the Invisible List wherever you get your books. We'll talk next week.",
+      "advertiser": null,
+      "reason": "Outro rate/review/subscribe request and repeat book pre-order pitch."
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+ "video_id": "IdcjplwJUQ8",
+ "channel": "nytdaily",
+ "title": "What Safeguarding Nukes Can Teach Us About Safeguarding A.I.",
+ "duration": 2195,
+ "segments": [
+  {
+   "category": "credits",
+   "start": 1148.2,
+   "end": 1157.8,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": "We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "labeler": "break-rule"
+  },
+  {
+   "category": "credits",
+   "start": 2060.0,
+   "end": 2079.8,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "We'll be right back.",
+   "last_line": "We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "labeler": "break-rule"
+  },
+  {
+   "category": "credits",
+   "start": 2152,
+   "end": 2179,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "Today's [music] episode was produced by Shannon Lynn and Jessica Chung with help from Michael Simon Johnson.",
+   "last_line": "Special thanks to Daniel Ramirez.",
+   "reason": "Standard end-of-episode production credit roll (producers, editor, fact-checker, music, engineer, special thanks), ending before the 'That's it for the Daily' sign-off.",
+   "labeler": "opus-credits",
+   "advertiser": null
+  }
+ ]
+}

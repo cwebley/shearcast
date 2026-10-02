@@ -1,0 +1,30 @@
+{
+  "video_id": "SI2IggZ3Fac",
+  "channel": "hotu",
+  "title": "What Happens If This Isn't The Real Universe?",
+  "duration": 3363,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 228,
+      "end": 305,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "I've been living between Spain and England for more than 10 years.",
+      "last_line": "Thanks to Nomad eSIM for supporting educational content on YouTube.",
+      "advertiser": "Nomad eSIM",
+      "reason": "Host-read Nomad eSIM spot with a personal-travel lead-in, promo code and link."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3350,
+      "end": 3363,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Don't forget to like and subscribe [music] and leave us a comment to tell us what you think.",
+      "last_line": "Thanks for watching and we'll see you next time. >> [music]",
+      "advertiser": null,
+      "reason": "Outro asking viewers to like, subscribe and comment, running to the end."
+    }
+  ]
+}

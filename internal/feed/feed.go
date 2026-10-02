@@ -15,10 +15,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cwebley/shearcast/internal/chapters"
 )
 
 // Item is one episode.
 type Item struct {
+	PublicationID string             // opaque publication commit marker, not the episode GUID
+	Chapters      []chapters.Chapter // inline Podlove for HTTP feeds
+	ChaptersURL   string             // Podcasting 2.0 JSON for HTTPS feeds
 	// ID is the source video/episode id. It becomes the RSS guid, so it must
 	// be stable across republishes: change it and podcast apps will treat the
 	// episode as new.
@@ -29,6 +34,10 @@ type Item struct {
 	AudioURL    string
 	AudioBytes  int64
 	Duration    time.Duration
+	// ImageURL is per-episode artwork (some apps show it; most fall back to
+	// the channel's). Optional -- an empty string omits the element entirely
+	// rather than writing an empty href.
+	ImageURL string
 }
 
 // Feed is one channel's show, publishable as its own subscription.
@@ -40,6 +49,9 @@ type Feed struct {
 	SelfURL  string
 	Language string
 	Category string
+	// ImageURL is the show's artwork. Optional, same omission rule as
+	// Item.ImageURL.
+	ImageURL string
 	Items    []Item
 }
 
@@ -59,8 +71,40 @@ func (f *Feed) Upsert(item Item) {
 }
 
 func (f *Feed) sort() {
-	sort.Slice(f.Items, func(i, j int) bool {
-		return f.Items[i].PublishedAt.After(f.Items[j].PublishedAt)
+	OrderItems(f.Items, nil)
+}
+
+// OrderItems sorts by source chronology. Listing positions, when supplied,
+// resolve same-day dates. When a day's dates lack times, listed uploads go
+// ahead of entries outside the newest-N listing, and stable feed order
+// preserves previous source ordering instead of inventing an ID tie-break.
+// When the times are known, an entry missing from the listing is ordered by
+// its time: it may have been hidden or made inaccessible, not grown older.
+func OrderItems(items []Item, listing map[string]int) {
+	dayOnly := map[string]bool{}
+	for _, item := range items {
+		date := item.PublishedAt.UTC()
+		if date.Format("150405") == "000000" {
+			dayOnly[date.Format("20060102")] = true
+		}
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		a, b := items[i], items[j]
+		day := a.PublishedAt.UTC().Format("20060102")
+		if day == b.PublishedAt.UTC().Format("20060102") {
+			ai, aok := listing[a.ID]
+			bi, bok := listing[b.ID]
+			if aok && bok {
+				return ai < bi
+			}
+			if dayOnly[day] {
+				if aok != bok {
+					return aok
+				}
+				return false
+			}
+		}
+		return a.PublishedAt.After(b.PublishedAt)
 	})
 }
 
@@ -82,6 +126,7 @@ func (f Feed) XML() ([]byte, error) {
 		Language:       lang,
 		ItunesExplicit: "false",
 		ItunesCategory: itunesCategory{Text: category},
+		ItunesImage:    imageOf(f.ImageURL),
 		AtomLink: atomLink{
 			Href: f.SelfURL,
 			Rel:  "self",
@@ -90,11 +135,15 @@ func (f Feed) XML() ([]byte, error) {
 	}
 	for _, item := range f.Items {
 		channel.Items = append(channel.Items, rssItem{
+			PublicationID:  item.PublicationID,
 			Title:          item.Title,
 			GUID:           rssGUID{IsPermaLink: "false", Value: item.ID},
 			PubDate:        item.PublishedAt.Format(time.RFC1123Z),
 			Description:    item.Description,
 			ItunesDuration: formatDuration(item.Duration),
+			ItunesImage:    imageOf(item.ImageURL),
+			Chapters:       inlineChapters(item.Chapters),
+			ChaptersLink:   chapterLink(item.ChaptersURL),
 			Enclosure: rssEnclosure{
 				URL:    item.AudioURL,
 				Length: fmt.Sprintf("%d", item.AudioBytes),
@@ -104,10 +153,13 @@ func (f Feed) XML() ([]byte, error) {
 	}
 
 	doc := rssDocument{
-		Version:     "2.0",
-		XMLNSItunes: "http://www.itunes.com/dtds/podcast-1.0.dtd",
-		XMLNSAtom:   "http://www.w3.org/2005/Atom",
-		Channel:     channel,
+		Version:        "2.0",
+		XMLNSItunes:    "http://www.itunes.com/dtds/podcast-1.0.dtd",
+		XMLNSAtom:      "http://www.w3.org/2005/Atom",
+		XMLNSPodcast:   "https://podcastindex.org/namespace/1.0",
+		XMLNSPSC:       "http://podlove.org/simple-chapters",
+		XMLNSShearcast: "urn:shearcast:publication:1",
+		Channel:        channel,
 	}
 	body, err := xml.MarshalIndent(doc, "", "  ")
 	if err != nil {
@@ -129,7 +181,21 @@ func (f Feed) XML() ([]byte, error) {
 // stripped, and atom:link is self-closing, so a naive single field tagged
 // "link" gets silently clobbered back to empty by whichever element the
 // decoder visits second.
+//
+// A document that is not RSS with exactly one channel is an error, not an
+// empty feed: callers treat a parsed feed as the whole library, and publishing
+// over or cleaning up after a misread one would lose episodes.
 func Parse(data []byte) (*Feed, error) {
+	var header struct {
+		XMLName  xml.Name   `xml:"rss"`
+		Channels []struct{} `xml:"channel"`
+	}
+	if err := xml.Unmarshal(data, &header); err != nil {
+		return nil, fmt.Errorf("parsing feed: invalid RSS document: %w", err)
+	}
+	if len(header.Channels) != 1 {
+		return nil, fmt.Errorf("parsing feed: RSS must contain exactly one channel")
+	}
 	var doc rssDocumentIn
 	if err := xml.Unmarshal(data, &doc); err != nil {
 		return nil, fmt.Errorf("parsing feed: %w", err)
@@ -139,6 +205,7 @@ func Parse(data []byte) (*Feed, error) {
 		Description: doc.Channel.Description,
 		Language:    doc.Channel.Language,
 		Category:    doc.Channel.ItunesCategory.Text,
+		ImageURL:    imageHref(doc.Channel.ItunesImage),
 	}
 	for _, item := range doc.Channel.Items {
 		published, err := time.Parse(time.RFC1123Z, item.PubDate)
@@ -153,14 +220,40 @@ func Parse(data []byte) (*Feed, error) {
 		if err != nil {
 			return nil, fmt.Errorf("parsing itunes:duration %q: %w", item.ItunesDuration, err)
 		}
+		var list []chapters.Chapter
+		if item.Chapters != nil {
+			for _, c := range item.Chapters.Chapters {
+				parts := strings.Split(c.Start, ":")
+				if len(parts) != 3 {
+					return nil, fmt.Errorf("invalid chapter start %q", c.Start)
+				}
+				var seconds float64
+				for _, p := range parts {
+					v, err := strconv.ParseFloat(p, 64)
+					if err != nil || v < 0 {
+						return nil, fmt.Errorf("invalid chapter start %q", c.Start)
+					}
+					seconds = seconds*60 + v
+				}
+				list = append(list, chapters.Chapter{Start: seconds, Title: c.Title})
+			}
+		}
+		chapterURL := ""
+		if item.ChaptersLink != nil {
+			chapterURL = item.ChaptersLink.URL
+		}
 		f.Items = append(f.Items, Item{
-			ID:          item.GUID.Value,
-			Title:       item.Title,
-			Description: item.Description,
-			PublishedAt: published,
-			AudioURL:    item.Enclosure.URL,
-			AudioBytes:  bytes,
-			Duration:    duration,
+			PublicationID: item.PublicationID,
+			Chapters:      list,
+			ChaptersURL:   chapterURL,
+			ID:            item.GUID.Value,
+			Title:         item.Title,
+			Description:   item.Description,
+			PublishedAt:   published,
+			AudioURL:      item.Enclosure.URL,
+			AudioBytes:    bytes,
+			Duration:      duration,
+			ImageURL:      imageHref(item.ItunesImage),
 		})
 	}
 	f.sort()
@@ -191,6 +284,25 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%d:%02d:%02d", h, m, s)
 }
 
+// imageOf builds an itunes:image element, or nil (omitted entirely) for an
+// empty URL -- a podcast app should fall back to no image rather than render
+// a broken href="".
+func imageOf(url string) *itunesImage {
+	if url == "" {
+		return nil
+	}
+	return &itunesImage{Href: url}
+}
+
+// imageHref is imageOf's inverse for the read side, where a missing element
+// decodes to a nil pointer rather than an empty struct.
+func imageHref(img *itunesImageIn) string {
+	if img == nil {
+		return ""
+	}
+	return img.Href
+}
+
 // The struct tags below use a literal "itunes:"/"atom:" prefix rather than
 // Go's namespace-URI attribute syntax. encoding/xml emits the tag name
 // verbatim, and the prefix is declared once via the xmlns:itunes/xmlns:atom
@@ -198,11 +310,14 @@ func formatDuration(d time.Duration) string {
 // nearly every podcast feed on the web actually uses.
 
 type rssDocument struct {
-	XMLName     xml.Name   `xml:"rss"`
-	Version     string     `xml:"version,attr"`
-	XMLNSItunes string     `xml:"xmlns:itunes,attr"`
-	XMLNSAtom   string     `xml:"xmlns:atom,attr"`
-	Channel     rssChannel `xml:"channel"`
+	XMLNSShearcast string     `xml:"xmlns:shearcast,attr"`
+	XMLNSPodcast   string     `xml:"xmlns:podcast,attr"`
+	XMLNSPSC       string     `xml:"xmlns:psc,attr"`
+	XMLName        xml.Name   `xml:"rss"`
+	Version        string     `xml:"version,attr"`
+	XMLNSItunes    string     `xml:"xmlns:itunes,attr"`
+	XMLNSAtom      string     `xml:"xmlns:atom,attr"`
+	Channel        rssChannel `xml:"channel"`
 }
 
 type rssChannel struct {
@@ -213,6 +328,7 @@ type rssChannel struct {
 	Language       string         `xml:"language"`
 	ItunesExplicit string         `xml:"itunes:explicit"`
 	ItunesCategory itunesCategory `xml:"itunes:category"`
+	ItunesImage    *itunesImage   `xml:"itunes:image"`
 	Items          []rssItem      `xml:"item"`
 }
 
@@ -226,13 +342,23 @@ type itunesCategory struct {
 	Text string `xml:"text,attr"`
 }
 
+// itunesImage is self-closing (<itunes:image href="..."/>): the podcast
+// namespace's artwork extension takes an href attribute, not chardata.
+type itunesImage struct {
+	Href string `xml:"href,attr"`
+}
+
 type rssItem struct {
-	Title          string       `xml:"title"`
-	GUID           rssGUID      `xml:"guid"`
-	PubDate        string       `xml:"pubDate"`
-	Enclosure      rssEnclosure `xml:"enclosure"`
-	ItunesDuration string       `xml:"itunes:duration"`
-	Description    string       `xml:"description"`
+	PublicationID  string           `xml:"shearcast:publication,omitempty"`
+	Chapters       *pscChapters     `xml:"psc:chapters"`
+	ChaptersLink   *podcastChapters `xml:"podcast:chapters"`
+	Title          string           `xml:"title"`
+	GUID           rssGUID          `xml:"guid"`
+	PubDate        string           `xml:"pubDate"`
+	Enclosure      rssEnclosure     `xml:"enclosure"`
+	ItunesDuration string           `xml:"itunes:duration"`
+	ItunesImage    *itunesImage     `xml:"itunes:image"`
+	Description    string           `xml:"description"`
 }
 
 type rssGUID struct {
@@ -269,6 +395,7 @@ type rssChannelIn struct {
 	Description    string           `xml:"description"`
 	Language       string           `xml:"language"`
 	ItunesCategory itunesCategoryIn `xml:"category"`
+	ItunesImage    *itunesImageIn   `xml:"image"`
 	Items          []rssItemIn      `xml:"item"`
 }
 
@@ -276,11 +403,56 @@ type itunesCategoryIn struct {
 	Text string `xml:"text,attr"`
 }
 
+type itunesImageIn struct {
+	Href string `xml:"href,attr"`
+}
+
 type rssItemIn struct {
-	Title          string       `xml:"title"`
-	GUID           rssGUID      `xml:"guid"`
-	PubDate        string       `xml:"pubDate"`
-	Enclosure      rssEnclosure `xml:"enclosure"`
-	ItunesDuration string       `xml:"duration"`
-	Description    string       `xml:"description"`
+	PublicationID  string           `xml:"urn:shearcast:publication:1 publication"`
+	Chapters       *pscChaptersIn   `xml:"http://podlove.org/simple-chapters chapters"`
+	ChaptersLink   *podcastChapters `xml:"https://podcastindex.org/namespace/1.0 chapters"`
+	Title          string           `xml:"title"`
+	GUID           rssGUID          `xml:"guid"`
+	PubDate        string           `xml:"pubDate"`
+	Enclosure      rssEnclosure     `xml:"enclosure"`
+	ItunesDuration string           `xml:"duration"`
+	ItunesImage    *itunesImageIn   `xml:"image"`
+	Description    string           `xml:"description"`
+}
+
+type podcastChapters struct {
+	URL  string `xml:"url,attr"`
+	Type string `xml:"type,attr"`
+}
+
+type pscChapter struct {
+	Start string `xml:"start,attr"`
+	Title string `xml:"title,attr"`
+}
+
+type pscChapters struct {
+	Version  string       `xml:"version,attr"`
+	Chapters []pscChapter `xml:"psc:chapter"`
+}
+
+type pscChaptersIn struct {
+	Chapters []pscChapter `xml:"http://podlove.org/simple-chapters chapter"`
+}
+
+func chapterLink(url string) *podcastChapters {
+	if url == "" {
+		return nil
+	}
+	return &podcastChapters{URL: url, Type: chapters.ContentType}
+}
+
+func inlineChapters(list []chapters.Chapter) *pscChapters {
+	if len(list) == 0 {
+		return nil
+	}
+	out := &pscChapters{Version: "1.2"}
+	for _, c := range list {
+		out.Chapters = append(out.Chapters, pscChapter{Start: chapters.Time(c.Start, true), Title: c.Title})
+	}
+	return out
 }

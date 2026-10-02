@@ -1,0 +1,8 @@
+{"video_id": "IAfbYVRgOhQ", "channel": "vergecast", "title": "Your AI apocalypse questions, answered", "duration": 1756, "segments": [
+  {"category": "credits", "start": 1718, "end": 1742, "confidence": "high",
+   "borderline": false, "first_line": "We want to know what you think.", "last_line": "[music] Josh Kahas, Eric Gomez, Brandon Kefir. I'm also involved.",
+   "advertiser": null, "reason": "Hotline and email contact info followed by production credits."},
+  {"category": "selfpromo", "start": 1751, "end": 1756, "confidence": "low",
+   "borderline": true, "first_line": ">> Go to YouTube to see the dog. [laughter]", "last_line": ">> Go to YouTube to see the dog. [laughter]",
+   "advertiser": null, "reason": "Joking push to the show's YouTube video at the very end."}
+]}

@@ -1,0 +1,4 @@
+{"video_id": "dCwWXEI1-lA", "channel": "primetime", "title": "Cloudflare Cooked", "duration": 779, "segments": [
+  {"category": "sponsor", "start": 118, "end": 251, "confidence": "high", "borderline": false, "first_line": "But, of course, before we do that, a quick thank you from the sponsors.", "last_line": "Check them out at sentry.io. All right, welcome back.", "advertiser": "Sentry", "reason": "Segue into a scripted Sentry sponsor skit; content resumes with the Rust vec discussion."},
+  {"category": "selfpromo", "start": 758, "end": 779, "confidence": "high", "borderline": false, "first_line": "If you like it, hey, say something, you know?", "last_line": "Okay, I have four of them, so I know all about smashing the like button and hitting subscribe and making a comment, you know? Ah, Jen.", "advertiser": null, "reason": "Closing comment, like and subscribe asks, running to the end."}
+]}

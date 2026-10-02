@@ -1,0 +1,30 @@
+{
+  "video_id": "dchBY5XO6Qg",
+  "channel": "coolworlds",
+  "title": "Why Finding Aliens Could Doom Humanity",
+  "duration": 1597,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 300,
+      "end": 391,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Now a great filter for evolution might not be so great, but a great filter for your internet presence, that's something I can get behind and that's where the sponsor of today's video comes in, Incogni.",
+      "last_line": "Click the link down below to claim your 60% off and get your personal data off the market. Now, back to the video.",
+      "advertiser": "Incogni",
+      "reason": "Host-read Incogni ad with themed segue."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1533,
+      "end": 1597,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "This is a big question that is very ripe for discussion though, and I'm sure as you've been watching this video you've been having many reactions and thoughts in your mind.",
+      "last_line": "And as always, stay thoughtful and stay curious.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to comment below, then sign-off to end."
+    }
+  ]
+}

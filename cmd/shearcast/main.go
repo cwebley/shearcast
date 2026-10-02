@@ -1,4 +1,4 @@
-// Command shearcast turns YouTube channels into private podcast feeds with
+// Command shearcast turns YouTube channels into unlisted podcast feeds with
 // configured segments cut out: detect regions with a System One model against
 // your own rules (ad reads by default), cut them, publish the result to
 // object storage as a per-channel RSS feed.
@@ -24,12 +24,26 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
+	case "init":
+		err = runInit(ctx, os.Args[2:])
 	case "render":
 		err = runRender(ctx, os.Args[2:])
 	case "publish":
 		err = runPublish(ctx, os.Args[2:])
 	case "sync":
 		err = runSync(ctx, os.Args[2:])
+	case "serve":
+		err = runServe(ctx, os.Args[2:])
+	case "doctor":
+		err = runDoctor(ctx, os.Args[2:])
+	case "status":
+		err = runStatus(ctx, os.Args[2:])
+	case "channel":
+		err = runChannel(ctx, os.Args[2:])
+	case "episode":
+		err = runEpisode(ctx, os.Args[2:])
+	case "feeds":
+		err = runFeeds(ctx, os.Args[2:])
 	case "transcript":
 		err = runTranscript(ctx, os.Args[2:])
 	case "help", "-h", "--help":
@@ -48,12 +62,20 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `shearcast - de-sponsored audio, published as private podcast feeds
+	fmt.Fprint(os.Stderr, `shearcast - sheared audio, published as unlisted podcast feeds
 
 usage:
+  shearcast init [flags]                                    write a starter config and .env
   shearcast render <video-url-or-id> -channel SLUG [flags]   detect, snap to silence, and cut an episode
-  shearcast publish <video-url-or-id> -channel SLUG [flags]  upload a rendered episode and update its feed
-  shearcast sync [-channel SLUG] [flags]                     check configured channels for new episodes, render+publish each
+  shearcast publish <video-url-or-id> -channel SLUG [flags]  publish a rendered episode and update its feed
+  shearcast sync [-channel SLUG] [flags]                     resume publication, refresh metadata and process new episodes
+  shearcast sync -dry-run [-channel SLUG] [flags]            estimate selection, cost and storage
+  shearcast serve [flags]                                  serve local feeds and audio over HTTP
+  shearcast doctor [-operation sync|publish|serve] [flags]   check setup; local checks by default
+  shearcast status [-channel SLUG] [flags]                  show saved sync history and unfinished work
+  shearcast feeds [-publish] [flags]                        show the subscription page, its QR code and feed URLs
+  shearcast channel add|list|update|remove [slug] [flags]    manage channels and retention
+  shearcast episode list|remove|restore|reprocess [flags]    manage episodes in one channel
   shearcast transcript <video-url-or-id> [flags]             print cached captions, optionally windowed
 
 run "shearcast render -h" for flags

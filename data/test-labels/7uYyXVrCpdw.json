@@ -1,0 +1,43 @@
+{
+ "video_id": "7uYyXVrCpdw",
+ "channel": "nytdaily",
+ "title": "Why Gas Prices Just Keep Going Up",
+ "duration": 1433,
+ "segments": [
+  {
+   "category": "credits",
+   "start": 771,
+   "end": 782,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "[music] We'll be right back.",
+   "last_line": "[music] We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "relabeled": "2026-09-30: was a low-confidence sponsor label marked borderline"
+  },
+  {
+   "category": "credits",
+   "start": 1325,
+   "end": 1338,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": ">> [music] >> We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "relabeled": "2026-09-30: was a low-confidence sponsor label marked borderline"
+  },
+  {
+   "category": "credits",
+   "start": 1387,
+   "end": 1415,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "Today's episode was produced by Jessica Chung, [music] Olivia Nat, and Anna Foley with help from Eric Cropky.",
+   "last_line": "And special [music] thanks to Ben Hubard.",
+   "advertiser": null,
+   "reason": "Production, editing, music and engineering credits before the sign-off."
+  }
+ ]
+}

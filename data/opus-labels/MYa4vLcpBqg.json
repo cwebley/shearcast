@@ -1,0 +1,63 @@
+{
+  "video_id": "MYa4vLcpBqg",
+  "channel": "hank",
+  "title": "Answering your Dumb Saturn Questions",
+  "duration": 1270,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 68,
+      "end": 140,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Jupiter shirt, yes. / Yes, please do another run of Jupiter moon shirts.",
+      "last_line": "Because Casey keeps the rights to do other kinds of merch with his art.",
+      "advertiser": null,
+      "reason": "Merch pitch for the Saturn and Jupiter moon shirt pre-order plus Casey's art print."
+    },
+    {
+      "category": "selfpromo",
+      "start": 841,
+      "end": 849,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Hank, when does this design go on a shirt?",
+      "last_line": "I felt like I had to use it in that moment.",
+      "advertiser": null,
+      "reason": "Brief answer about a future shirt design tied to an upcoming oarfish video; merch tease rather than a pitch."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1033,
+      "end": 1049,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "All right, well, in that case, this is the Saturn shirt.",
+      "last_line": "We're going to take the exact numbers of inventory with a little overage for customer support reasons, send that off to our shirt supplier, get them printed, and get them sent out to you.",
+      "advertiser": null,
+      "reason": "Repeat of the 3-day shirt pre-order pitch before the Connections segment."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1167,
+      "end": 1260,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I did the same thing on 4 by 3 today.",
+      "last_line": "So you get it either we can get Hank's version or the crowd's version. I got neither.",
+      "advertiser": null,
+      "reason": "Extended discussion of Hank's own puzzle game 4 by 3 (creator's game discussed at length)."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1260,
+      "end": 1270,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "All right, thanks for watching all the way to the end.",
+      "last_line": "Probably a bunch of them actually.",
+      "advertiser": null,
+      "reason": "Outro reminder to buy the Saturn/Jupiter shirts via link in description."
+    }
+  ]
+}

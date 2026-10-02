@@ -1,0 +1,41 @@
+{
+  "video_id": "ipvFXLUmgiU",
+  "channel": "lostdebate",
+  "title": "Nikole Hannah-Jones, WH Press Ban, Ed Sheeran",
+  "duration": 3133,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 40,
+      "end": 106,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "But uh as a reminder, my book just came out on Tuesday, September 22nd.",
+      "last_line": "Uh, we'll put some links in the show notes to where you can check those out.",
+      "advertiser": null,
+      "reason": "Host pitches his own new book The Invisible List and asks listeners to buy it."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3103,
+      "end": 3127,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Anything else you want to plug before I let you go?",
+      "last_line": "So, if you're interested in kind of a center-left organizing perspective, you can get involved at cn liberalism. org. Thank you, sir. Thank you for having me. >> All right, everybody.",
+      "advertiser": null,
+      "reason": "Guest plugs his own podcast and organization at the host's invitation."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3127,
+      "end": 3133,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you so much for listening.",
+      "last_line": "Remember to rate, review, subscribe, and again, go out and get the Invisible List wherever you get your books. We'll talk next week.",
+      "advertiser": null,
+      "reason": "Outro asking listeners to rate, review and subscribe and to buy the host's book."
+    }
+  ]
+}

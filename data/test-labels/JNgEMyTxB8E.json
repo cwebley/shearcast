@@ -1,0 +1,8 @@
+{"video_id": "JNgEMyTxB8E", "channel": "hotu", "title": "Did We Just Discover The Universe's Greatest Weakness?", "duration": 3330, "segments": [
+  {"category": "sponsor", "start": 143, "end": 230, "confidence": "high",
+   "borderline": false, "first_line": "The Soviet Luna rovers explored the moon in the 1970s, remotely driven from mission control in Crimea.", "last_line": "So head to any.com to try this premium remote access tool free of charge.",
+   "advertiser": "AnyDesk", "reason": "Host-read AnyDesk spot opened by a Luna-rover remote-control segue written to lead into the pitch."},
+  {"category": "selfpromo", "start": 3318, "end": 3330, "confidence": "high",
+   "borderline": false, "first_line": "Don't forget to like and subscribe and leave us a comment to tell us what you think.", "last_line": "Thanks for watching and we'll see you next time. [Music]",
+   "advertiser": null, "reason": "Closing like/subscribe/comment ask running to the end of the video."}
+]}

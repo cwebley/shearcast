@@ -1,0 +1,30 @@
+{
+  "video_id": "ejjBbaq9RmY",
+  "channel": "t3",
+  "title": "Getting the most out of Opus 5.5",
+  "duration": 1721,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 55,
+      "end": 148,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "On the topic of maximizing value, we should take a quick break for today's sponsor.",
+      "last_line": "Figure out why everyone from Theo to Google loves them at soy. link/browserbase.",
+      "advertiser": "Browserbase",
+      "reason": "Host-read sponsor spot for Browserbase with a segue and referral link."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1692,
+      "end": 1704,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I talk about a lot of these layers in a video coming out soon all about how Anthropic made the performance for the cloud site and desktop app three times faster because the systems you build to verify these changes are just as important as the raw source code itself.",
+      "last_line": "I talk about a lot of these layers in a video coming out soon all about how Anthropic made the performance for the cloud site and desktop app three times faster because the systems you build to verify these changes are just as important as the raw source code itself.",
+      "advertiser": null,
+      "reason": "Brief teaser for the creator's own upcoming video, woven into the wrap-up."
+    }
+  ]
+}

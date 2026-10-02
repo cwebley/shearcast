@@ -1,0 +1,17 @@
+{"video_id": "HVJ_PsFX2Kg", "channel": "klatt", "title": "College Football Week 3 Picks: Will Lane Kiffin & LSU win in his return to Ole Miss?", "duration": 1344, "segments": [
+  {"category": "sponsor", "start": 30, "end": 35, "confidence": "high",
+   "borderline": false, "first_line": "This show is sponsored by Hilton.", "last_line": "Hilton for the stay and we thank them for their support and I want to thank you again.",
+   "advertiser": "Hilton", "reason": "Short presenting-sponsor mention for Hilton at the top of the show."},
+  {"category": "selfpromo", "start": 59, "end": 61, "confidence": "medium",
+   "borderline": false, "first_line": "Make sure to subscribe, do all the things. That's uh very cool.", "last_line": "Make sure to subscribe, do all the things. That's uh very cool.",
+   "advertiser": null, "reason": "Brief subscribe ask after thanking viewers."},
+  {"category": "selfpromo", "start": 786, "end": 791, "confidence": "medium",
+   "borderline": false, "first_line": "And by the way, if you haven't, you need to go back and and do so. It's on YouTube. Uh go subscribe.", "last_line": "And by the way, if you haven't, you need to go back and and do so. It's on YouTube. Uh go subscribe.",
+   "advertiser": null, "reason": "Aside plugging yesterday's episode on YouTube and asking viewers to subscribe."},
+  {"category": "sponsor", "start": 970, "end": 1049, "confidence": "high",
+   "borderline": false, "first_line": "College football season is almost here and if you're like me, this is the best time of year.", "last_line": "We just want to thank SeatGeek for their support of the show and all of college football.",
+   "advertiser": "SeatGeek", "reason": "Host-read SeatGeek spot with promo code between game picks."},
+  {"category": "selfpromo", "start": 1328, "end": 1335, "confidence": "high",
+   "borderline": false, "first_line": "If you have not subscribed to the program, please do so over on YouTube.", "last_line": "Follow us wherever you like the social media Joel Clad Show.",
+   "advertiser": null, "reason": "Closing subscribe and social-follow ask."}
+]}

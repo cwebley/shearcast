@@ -1,0 +1,30 @@
+{
+  "video_id": "-tmGR979z7g",
+  "channel": "klatt",
+  "title": "Trinidad Chambliss ruins Kiffin’s return: should Ole Miss be #1? Ohio St’s issues + Klatt’s Top 10",
+  "duration": 2949,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 31,
+      "end": 37,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This show is sponsored by Hilton.",
+      "last_line": "Hilton for the stay and we thank them for their support. Let's get right into it.",
+      "advertiser": "Hilton",
+      "reason": "Brief host-read sponsor credit for Hilton."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2914,
+      "end": 2949,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Remember, uh, folks, if you have not done it yet, please go ahead and subscribe to the video.",
+      "last_line": "We'll be back on Wednesday.",
+      "advertiser": null,
+      "reason": "Outro asking to subscribe, like, comment, rate/review and follow on social media."
+    }
+  ]
+}

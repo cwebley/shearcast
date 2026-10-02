@@ -96,6 +96,34 @@ func TestDedupeOverlapNotJustPrefix(t *testing.T) {
 	}
 }
 
+func TestDedupeKeepsLaterRepeats(t *testing.T) {
+	// The same words said again seconds later are new speech, not a rolling
+	// restatement, and keep their own text and timing.
+	cues := []Cue{
+		{Start: 0, End: 2, Text: "thank you for listening"},
+		{Start: 8, End: 10, Text: "thank you for listening"},
+		{Start: 20, End: 22, Text: "for listening and goodbye"},
+	}
+	got := dedupe(cues)
+	if len(got) != 3 || got[1].Start != 8 || got[2].Text != "for listening and goodbye" {
+		t.Fatalf("got %+v", got)
+	}
+}
+
+func TestParseVTTRejectsBrokenTiming(t *testing.T) {
+	for name, timing := range map[string]string{
+		"garbled end": "00:00:10.000 --> BROKEN",
+		"reversed":    "00:00:12.000 --> 00:00:10.000",
+		"empty":       "00:00:10.000 --> 00:00:10.000",
+	} {
+		vtt := "WEBVTT\n\n00:00:00.000 --> 00:00:02.000\nIntroduction.\n\n" + timing +
+			"\nThis episode is sponsored by Acme.\n\n00:00:20.000 --> 00:00:22.000\nNow back to the program.\n"
+		if cues, err := ParseVTT(strings.NewReader(vtt)); err == nil {
+			t.Errorf("%s: dropped the broken cue instead of failing: %+v", name, cues)
+		}
+	}
+}
+
 func TestWindowsSnapToSentenceEnd(t *testing.T) {
 	cues := []Cue{
 		{Start: 0, End: 10, Text: "one"},
@@ -117,7 +145,7 @@ func TestWindowsSnapToSentenceEnd(t *testing.T) {
 	}
 }
 
-func TestWindowsHonourMaxLength(t *testing.T) {
+func TestWindowsHonorMaxLength(t *testing.T) {
 	// No sentence ever ends, so the max length has to force the break.
 	var cues []Cue
 	for i := 0; i < 20; i++ {
@@ -206,7 +234,7 @@ func TestSentencesFoldShortFragments(t *testing.T) {
 func TestSentencesFoldShortTrailingQuestionBackward(t *testing.T) {
 	// Real shape from MhOCMpePvjU: a short rhetorical question closes out the
 	// previous sentence's setup, then an ad's segue begins immediately after.
-	// Folding forward (the old behaviour) glued "Why are we here?" onto the
+	// Folding forward (the old behavior) glued "Why are we here?" onto the
 	// segue's own first sentence, so the candidate boundary landed one word
 	// into the ad's own sentence and the actual audio cut clipped "Why" mid
 	// word. It belongs with what precedes it.
@@ -250,5 +278,52 @@ func TestSentencesHandleNoTerminator(t *testing.T) {
 	got := Sentences(cues, "S", 0)
 	if len(got) != 1 || got[0].Text != "no terminator anywhere in here" {
 		t.Fatalf("got %+v, want the trailing fragment kept", got)
+	}
+}
+
+func TestSpeechEndIgnoresHowLongTheLastCueIsDisplayed(t *testing.T) {
+	// I07RBedXRYA's final caption: shown 1078.96-1098.96, but whisper puts the
+	// end of speech at 1083.3 and music plays to the end of the video.
+	cues := []Cue{
+		{Start: 1072.4, End: 1078.96, Text: "you want removed. To learn more about Incogni just check out: https://incogni.com/spacetime"},
+		{Start: 1078.96, End: 1098.96, Text: "and use the code: SPACETIME for 60% off Incogni Annual"},
+	}
+	got := SpeechEnd(cues)
+	if got < 1083.3 || got > 1088 {
+		t.Errorf("got %.2f, want just after the words end at 1083.3", got)
+	}
+}
+
+func TestSpeechEndSkipsAnnotationOnlyCues(t *testing.T) {
+	cues := []Cue{
+		{Start: 10, End: 12, Text: "Thanks for watching."},
+		{Start: 12, End: 40, Text: "[Music]"},
+	}
+	if got := SpeechEnd(cues); got != 12 {
+		t.Errorf("got %.2f, want 12: the words end within their own cue", got)
+	}
+	if got := SpeechEnd([]Cue{{Start: 0, End: 5, Text: "[music]"}}); got != 0 {
+		t.Errorf("got %.2f for a track with no speech, want 0", got)
+	}
+}
+
+func TestSentencesKeepWebAddressesWhole(t *testing.T) {
+	cues := []Cue{
+		{Start: 0, End: 3, Text: "Find and book the right doctor with Zakdoc. Head to zakdoc."},
+		{Start: 3, End: 6, Text: "com/allthehacks to get started today."},
+		{Start: 6, End: 9, Text: "Visit sonos.com and build your system. It costs 3.5 dollars."},
+	}
+	var got []string
+	for _, s := range Sentences(cues, "S", 1) {
+		got = append(got, s.Text)
+	}
+	want := []string{
+		"Find and book the right doctor with Zakdoc.",
+		"Head to zakdoc.com/allthehacks to get started today.",
+		"Visit sonos.com and build your system.",
+		"It costs 3.5 dollars.",
+	}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("got\n  %q\nwant\n  %q", got, want)
 	}
 }

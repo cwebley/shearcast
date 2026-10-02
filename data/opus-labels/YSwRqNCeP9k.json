@@ -1,0 +1,19 @@
+{
+  "video_id": "YSwRqNCeP9k",
+  "channel": "spacetime",
+  "title": "So You Want to Understand Quantum Mechanics…",
+  "duration": 7734,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 7659,
+      "end": 7682,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "But in the meantime, go check out Mith's channel for quantum deep dives and more DIY quantum experiments.",
+      "last_line": "It's in our new series of space-time conversations that you can find in our community tab.",
+      "advertiser": null,
+      "reason": "Plugs the guest collaborator's channel (Looking Glass Universe) and the show's own Space Time Conversations series in the community tab."
+    }
+  ]
+}

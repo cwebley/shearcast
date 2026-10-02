@@ -1,0 +1,41 @@
+{
+  "video_id": "fui01uAxLHU",
+  "channel": "lostdebate",
+  "title": "Did Al Qaeda Lose?",
+  "duration": 2656,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 30,
+      "end": 102,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We are about two weeks out from my book coming out.",
+      "last_line": "You can uh check those out and get a ticket for any one of those events.",
+      "advertiser": null,
+      "reason": "Host plugs his own book The Invisible List, pre-orders and book-tour events."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2559,
+      "end": 2645,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Anything else you want to promote while we have you here?",
+      "last_line": "So, I would encourage anyone who's interested in that to to take a look at that book, The Way of the Strangers.",
+      "advertiser": null,
+      "reason": "Guest plugs his own book The Way of the Strangers at the host's invitation."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2648,
+      "end": 2656,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Remember to rate, review, subscribe, throw a fivestar rating.",
+      "last_line": "Uh share it with any of your friends. Uh we'll talk next week. Thank you.",
+      "advertiser": null,
+      "reason": "Outro asking listeners to rate, review, subscribe and share, running to the end."
+    }
+  ]
+}

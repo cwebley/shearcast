@@ -1,0 +1,42 @@
+{
+  "video_id": "uoEffocWP4A",
+  "channel": "hotu",
+  "title": "What Happens If You Zoom All The Way Out?",
+  "duration": 3402,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 177,
+      "end": 259,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Behind every History of the Universe documentary, are many, many hours of research.",
+      "last_line": "So, [music] to experience this yourself, download Opera via my link in the description.",
+      "advertiser": "Opera",
+      "reason": "Host-read Opera browser sponsor spot, opened by a segue about the channel's research process."
+    },
+    {
+      "category": "credits",
+      "start": 177,
+      "end": 198,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Behind every History of the Universe documentary, are many, many hours of research.",
+      "last_line": "From our expert writers, Paul, Colin, and Geraint to scouring countless papers, to our talented editors and animators like Siji and Manuel keeping their visuals as accurate as they are stunning, History of the Universe is the result of real people with a passion for bringing real astrophysics and cosmology to life.",
+      "reason": "Names the show's writers, editors and animators, but it doubles as the lead-in to the Opera sponsor read that follows immediately.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "selfpromo",
+      "start": 3387,
+      "end": 3402,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "You've been watching the entire history of the universe.",
+      "last_line": "Thanks for watching and we'll see you next time.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to like, subscribe and comment."
+    }
+  ]
+}

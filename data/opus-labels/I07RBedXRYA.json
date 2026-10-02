@@ -1,0 +1,41 @@
+{
+  "video_id": "I07RBedXRYA",
+  "channel": "spacetime",
+  "title": "We Thought All Black Holes Came From Stars. We May Have Been Wrong.",
+  "duration": 1122,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 0,
+      "end": 3,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you to Incogni for supporting PBS.",
+      "last_line": "Thank you to Incogni for supporting PBS.",
+      "advertiser": "Incogni",
+      "reason": "Opening sponsor credit for Incogni."
+    },
+    {
+      "category": "selfpromo",
+      "start": 45,
+      "end": 116,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before we get started, a couple of quick announcements.",
+      "last_line": "If Mars exploration has inspired you as much as it's inspired us, check it out at the Space Time merch store. Now on to the episode.",
+      "advertiser": null,
+      "reason": "Like/comment request, Patreon pitch and Mars-anniversary merch plug."
+    },
+    {
+      "category": "sponsor",
+      "start": 1028,
+      "end": 1122,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you to Incogni for supporting PBS.",
+      "last_line": "com/spacetime and use the code: SPACETIME for 60% off Incogni Annual",
+      "advertiser": "Incogni",
+      "reason": "Closing host-read Incogni sponsor spot running to the end."
+    }
+  ]
+}

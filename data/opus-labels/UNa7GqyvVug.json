@@ -1,0 +1,76 @@
+{
+  "video_id": "UNa7GqyvVug",
+  "channel": "vergecast",
+  "title": "Hotline: Folding phones in cars, EVs in Mexico | The Vergecast",
+  "duration": 1747,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 143,
+      "end": 220,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> Support for the show comes from Amazon Prime.",
+      "last_line": "Shop new deals every day this Prime Big Deal Days, October 6th and 7th.",
+      "advertiser": "Amazon Prime",
+      "reason": "Inserted ad for Prime Big Deal Days."
+    },
+    {
+      "category": "sponsor",
+      "start": 1003,
+      "end": 1073,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": ">> [laughter] >> Support for the show comes from Horizon 3.",
+      "last_line": "No commitment required, results in hours, not [music] weeks.",
+      "advertiser": "Horizon3.ai",
+      "reason": "Inserted ad for Horizon3's NodeZero security platform."
+    },
+    {
+      "category": "sponsor",
+      "start": 1073,
+      "end": 1150,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Support for the show comes from Amazon Prime.",
+      "last_line": "Shop new deals every day this Prime Big Deal Days, October 6th and 7th.",
+      "advertiser": "Amazon Prime",
+      "reason": "Repeat inserted Amazon Prime Big Deal Days ad directly after the Horizon3 ad."
+    },
+    {
+      "category": "credits",
+      "start": 1709,
+      "end": 1718,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Well, keep sending us your questions.",
+      "last_line": "You can call the hotline 866-VERGE11. Uh and you know what?",
+      "reason": "Contact info for the show: email address and hotline number, followed by a review ask.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "selfpromo",
+      "start": 1714,
+      "end": 1737,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "You can call the hotline 866-VERGE11. Uh and you know what? We haven't asked about this for a while, but why not give us a review",
+      "last_line": "And if you want to support everything that we do here and get ad-free podcast, subscribe to The Verge. Do it.",
+      "advertiser": null,
+      "reason": "Outro asking for five-star reviews and pitching a Verge subscription for ad-free podcasts."
+    },
+    {
+      "category": "credits",
+      "start": 1735,
+      "end": 1747,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "[music] >> The Vergecast is part of the Vox Media Podcast Network.",
+      "last_line": "We are produced by the best team in podcasting, Josh Cahahas, Eric Gomez, Brandon Kiefer, and there's also me. Later.",
+      "reason": "Network identification and production credit roll running to the end of the video.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

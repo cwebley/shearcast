@@ -1,0 +1,131 @@
+{
+  "video_id": "gzGEzI7LuFs",
+  "channel": "hutchins",
+  "title": "Deep Dive on World of Hyatt: Points, Perks and Status",
+  "duration": 4026,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 27,
+      "end": 34,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you enjoy this episode, leave a comment or share with a friend.",
+      "last_line": "And if you want to keep upgrading your money points in life, click follow or subscribe.",
+      "advertiser": null,
+      "reason": "Intro ask to comment, share, follow or subscribe."
+    },
+    {
+      "category": "sponsor",
+      "start": 599,
+      "end": 680,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by 11 Labs.",
+      "last_line": "See how 11 agents can fit into your workflows ... E- len l a bs. io/all the hacks.",
+      "advertiser": "ElevenLabs",
+      "reason": "Host-read ElevenLabs ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 680,
+      "end": 738,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Copilot Money.",
+      "last_line": "Code hacks 2 for 2 months free.",
+      "advertiser": "Copilot Money",
+      "reason": "Host-read Copilot Money ad, back to back with ElevenLabs."
+    },
+    {
+      "category": "sponsor",
+      "start": 1714,
+      "end": 1783,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by MasterClass.",
+      "last_line": "com/allthehacks to see the latest offer.",
+      "advertiser": "MasterClass",
+      "reason": "Host-read MasterClass ad."
+    },
+    {
+      "category": "sponsor",
+      "start": 1783,
+      "end": 1843,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "One of the smartest things I did a few years ago was clean up my digital footprint.",
+      "last_line": "Again, that's all thehacks. com/deleteme.",
+      "advertiser": "DeleteMe",
+      "reason": "Host-read DeleteMe ad directly following MasterClass."
+    },
+    {
+      "category": "selfpromo",
+      "start": 2265,
+      "end": 2287,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Good news is that we've set up a whole site so you can do this without even needing to reach out to someone or do phone calls.",
+      "last_line": "You'll still get your elite nights and your points on your stay and you'll get all those benefits as well.",
+      "advertiser": null,
+      "reason": "Pitch for the host's own hotels.allthehacks.com booking site with password, woven into the Hyatt Prive discussion."
+    },
+    {
+      "category": "sponsor",
+      "start": 2940,
+      "end": 3031,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This episode is brought to you by Netswuite.",
+      "last_line": "So, please consider supporting those who support us.",
+      "advertiser": "NetSuite",
+      "reason": "Host-read NetSuite ad followed by a pitch to use partner promo codes at the deals page."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3745,
+      "end": 3755,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I'll put my link in the show notes if you want my referral link and just make sure that if you do sign up for seats.",
+      "last_line": "Arero, look at Capital One Shopping in their browser extension because they often have really great deals.",
+      "advertiser": null,
+      "reason": "Brief referral-link plug for seats.aero inside a tools recommendation."
+    },
+    {
+      "category": "selfpromo",
+      "start": 3788,
+      "end": 3796,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Again, we've got that at hotels. hacks. com.",
+      "last_line": "And the password is perks.",
+      "advertiser": null,
+      "reason": "Brief repeat plug for the host's own hotel booking site."
+    },
+    {
+      "category": "credits",
+      "start": 3920,
+      "end": 3926,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I'm sure there might be something I missed, but if I did, send me a note.",
+      "last_line": "I'd love to share it as an update in the future.",
+      "reason": "Invitation to contact the host with corrections, lightly tied to the content.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "credits",
+      "start": 4019,
+      "end": 4024,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you have question, feedback, things I missed, email us podcastallahthehacks. com.",
+      "last_line": "If you have question, feedback, things I missed, email us podcastallahthehacks. com.",
+      "reason": "Show contact email.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

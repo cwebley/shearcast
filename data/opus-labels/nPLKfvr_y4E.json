@@ -1,0 +1,19 @@
+{
+  "video_id": "nPLKfvr_y4E",
+  "channel": "hotu",
+  "title": "The Final Verdict On The Theory Of Everything",
+  "duration": 9493,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 198,
+      "end": 291,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "In the early 1990s, American physicist Paul Ginsparg revolutionized how cutting-edge research was shared and reviewed.",
+      "last_line": "So, to prioritize your health without the fuss, go to my link in the description and get that appointment off your to-do list.",
+      "advertiser": "Zocdoc",
+      "reason": "Host-read Zocdoc spot; the arXiv/Ginsparg anecdote is a standalone segue written to lead into the pitch (start could arguably be 221 at the 'printing and mailing' pivot)."
+    }
+  ]
+}

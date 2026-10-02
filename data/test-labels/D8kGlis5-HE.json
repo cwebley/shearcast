@@ -1,0 +1,43 @@
+{
+ "video_id": "D8kGlis5-HE",
+ "channel": "nytdaily",
+ "title": "He Was Deported to a Country He\u2019d Never Heard Of",
+ "duration": 1637,
+ "segments": [
+  {
+   "category": "credits",
+   "start": 691.7,
+   "end": 703.9,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": "We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "labeler": "break-rule"
+  },
+  {
+   "category": "credits",
+   "start": 1539.9,
+   "end": 1560.5,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": ">> [music] >> We'll be right back.",
+   "last_line": "We'll be right back.",
+   "advertiser": null,
+   "reason": "Ad-break bumper: music bed plus \"We'll be right back\" with the ad itself removed from the YouTube upload. Cut as housekeeping per the user's 2026-09-30 decision; span runs from the music after the last spoken line to the next spoken line.",
+   "labeler": "break-rule"
+  },
+  {
+   "category": "credits",
+   "start": 1602,
+   "end": 1622,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "Today's episode was produced by Claire Tennisceter [music] and Lexi Dio with help from Michelle Banjo.",
+   "last_line": "[music] Our theme music is by Wonderly.",
+   "advertiser": null,
+   "reason": "Production credits before the sign-off."
+  }
+ ]
+}

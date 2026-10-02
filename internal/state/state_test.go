@@ -10,6 +10,7 @@ func TestOpenMissingFileStartsEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
+	t.Cleanup(func() { s.Close() })
 	if s.IsProcessed("hotu", "abc") {
 		t.Error("empty store reports a hit")
 	}
@@ -24,11 +25,15 @@ func TestMarkProcessedPersistsAcrossReopen(t *testing.T) {
 	if err := s.MarkProcessed("hotu", "abc123"); err != nil {
 		t.Fatalf("MarkProcessed: %v", err)
 	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	reopened, err := Open(path)
 	if err != nil {
 		t.Fatalf("reopen: %v", err)
 	}
+	t.Cleanup(func() { reopened.Close() })
 	if !reopened.IsProcessed("hotu", "abc123") {
 		t.Error("mark did not persist across reopen")
 	}
@@ -45,11 +50,9 @@ func TestMarkProcessedTwiceIsHarmless(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
+	t.Cleanup(func() { s.Close() })
 	s.MarkProcessed("hotu", "abc")
 	s.MarkProcessed("hotu", "abc")
-	if got := len(s.Processed["hotu"]); got != 2 {
-		t.Logf("got %d entries for a double-mark; duplicates are harmless since IsProcessed only checks membership", got)
-	}
 	if !s.IsProcessed("hotu", "abc") {
 		t.Error("expected abc to be marked processed")
 	}

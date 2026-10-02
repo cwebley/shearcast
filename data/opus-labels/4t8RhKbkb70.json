@@ -1,0 +1,65 @@
+{
+  "video_id": "4t8RhKbkb70",
+  "channel": "decoder",
+  "title": "Can Cloudflare save the web from AI? | Decoder",
+  "duration": 4607,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 150,
+      "end": 155,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "One last thing before we get started, you can subscribe to Decoder on YouTube [music] where we put out new episodes every Monday and Thursday.",
+      "last_line": "One last thing before we get started, you can subscribe to Decoder on YouTube [music] where we put out new episodes every Monday and Thursday.",
+      "advertiser": null,
+      "reason": "Host asks viewers to subscribe to the show's YouTube channel before the interview starts."
+    },
+    {
+      "category": "sponsor",
+      "start": 2110,
+      "end": 2202,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "[music] Hey everybody, this edition of Decoder Sessions features Andrew Melisac, the Verge's general manager in conversation with Raj Chararma, global managing partner for growth and innovation at EY global.",
+      "last_line": "That's the fundamental thing.",
+      "advertiser": "EY",
+      "reason": "Inserted branded 'Decoder Sessions' segment promoting EY.ai, which interrupts the interview."
+    },
+    {
+      "category": "selfpromo",
+      "start": 4578,
+      "end": 4607,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "To get new episodes every Monday and Thursday, subscribe to our YouTube channel at Decodepod and find us on Tik Tok and Instagram under DecoderPod as well for more fun stuff we put out every day.",
+      "last_line": "Dakota is a production of the verge and part of the box media podcast network. We'll see you next time.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to subscribe, follow on social, email in and share the episode, running to the end."
+    },
+    {
+      "category": "credits",
+      "start": 4586,
+      "end": 4595,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you'd like to let us know what you thought about this episode or really anything else at all, let us know.",
+      "last_line": "We really do read all the emails or hit [music] me up directly on threads or blue sky.",
+      "reason": "Contact info: invites feedback, gives the show email address and says they read every email.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    },
+    {
+      "category": "credits",
+      "start": 4603,
+      "end": 4607,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Dakota is a production of the verge and part of the box media podcast network. We'll see you next time.",
+      "last_line": "Dakota is a production of the verge and part of the box media podcast network. We'll see you next time.",
+      "reason": "Network identification (production of The Verge, Vox Media Podcast Network) running to the end of the video.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

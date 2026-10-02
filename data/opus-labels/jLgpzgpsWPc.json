@@ -1,0 +1,52 @@
+{
+  "video_id": "jLgpzgpsWPc",
+  "channel": "t3",
+  "title": "Elon promised this one would be good...",
+  "duration": 1673,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 54,
+      "end": 184,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Before we dive into the details, I want to give you one thing that's here without any catch. Today's sponsor.",
+      "last_line": "Get them better feedback faster at soyv. link/blacksmith.",
+      "advertiser": "Blacksmith",
+      "reason": "Host-read sponsor spot for Blacksmith CI runners."
+    },
+    {
+      "category": "selfpromo",
+      "start": 602,
+      "end": 609,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "So yeah, let me know in the comments if you want me to do a deep dive on Grockbot and the new like Muse Agent Assistant, whatever the hell it's called for Meta.",
+      "last_line": "So yeah, let me know in the comments if you want me to do a deep dive on Grockbot and the new like Muse Agent Assistant, whatever the hell it's called for Meta.",
+      "advertiser": null,
+      "reason": "Brief ask for viewers to comment about a possible future video."
+    },
+    {
+      "category": "selfpromo",
+      "start": 943,
+      "end": 955,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you haven't started watching yet, I surprised at how good the podcast got as quick as it did.",
+      "last_line": "So, if you want to watch something where someone pushes back on me, check out Nerdsip on your favorite podcast platforms.",
+      "advertiser": null,
+      "reason": "Plug for the host's own podcast Nerdsip, inserted mid-discussion (begins at the tail of the 15:36 line with 'shout out to Nurse')."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1654,
+      "end": 1662,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "How do you guys feel about this release?",
+      "last_line": "And until next time, peace nerds.",
+      "advertiser": null,
+      "reason": "Outro asking viewers to share their opinion in the comments."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "video_id": "NPzIgywPdY8",
+  "channel": "klatt",
+  "title": "Texas-Tennessee, Michigan-Iowa, Oregon-USC, Ole Miss-Florida and more Week 4 Picks",
+  "duration": 1982,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 26,
+      "end": 31,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "This show is sponsored by Hilton. Hilton for the stay.",
+      "last_line": "This show is sponsored by Hilton. Hilton for the stay.",
+      "advertiser": "Hilton",
+      "reason": "Sponsor mention in the intro."
+    },
+    {
+      "category": "selfpromo",
+      "start": 239,
+      "end": 243,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "Um you need to go back and check that out. Subscribe to the show.",
+      "last_line": "You can comment down below.",
+      "advertiser": null,
+      "reason": "Plug for yesterday's episode plus subscribe/comment request."
+    },
+    {
+      "category": "selfpromo",
+      "start": 803,
+      "end": 824,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "If you want a deeper description of this, we have a section on the YouTube page called Understanding Football.",
+      "last_line": "Uh, not specific to any week in college football, and check things out.",
+      "advertiser": null,
+      "reason": "Pitch for the channel's Understanding Football video series; tied to the explanation just given."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1129,
+      "end": 1135,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Go check out the numbers from our episode on Monday. Go back, listen to it. He's exceptional.",
+      "last_line": "Go check out the numbers from our episode on Monday. Go back, listen to it. He's exceptional.",
+      "advertiser": null,
+      "reason": "Brief referral to an earlier episode inside a pick."
+    },
+    {
+      "category": "sponsor",
+      "start": 1408,
+      "end": 1486,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "College football season is almost here.",
+      "last_line": "We just want to thank SeatGeek for their support of the show and all of college football. A&M at LSU.",
+      "advertiser": "SeatGeek",
+      "reason": "Host-read SeatGeek ad; next game starts at the end of the 24:42 line so end is estimated."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1974,
+      "end": 1982,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Subscribe to the program.",
+      "last_line": "You can follow us on social media at Joel Plattshow.",
+      "advertiser": null,
+      "reason": "Outro subscribe/comment/follow request to end of video."
+    }
+  ]
+}

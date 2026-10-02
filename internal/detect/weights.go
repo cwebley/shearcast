@@ -10,7 +10,7 @@ import (
 // Weights is a fitted linear combination of the per-sentence features.
 //
 // It is the entire learned artifact: a bias and one coefficient per feature.
-// Fitting happens offline against labelled data, so nothing here depends on a
+// Fitting happens offline against labeled data, so nothing here depends on a
 // live model or a scoring pipeline at serving time.
 type Weights struct {
 	Edge      string             `json:"edge"`

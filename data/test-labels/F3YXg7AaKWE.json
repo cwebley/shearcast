@@ -1,0 +1,8 @@
+{"video_id": "F3YXg7AaKWE", "channel": "t3", "title": "Jev is incredible", "duration": 1829, "segments": [
+  {"category": "sponsor", "start": 63, "end": 182, "confidence": "high",
+   "borderline": false, "first_line": "But first, we got to classify something.", "last_line": "Figure out what that means at soyv.link/depo.",
+   "advertiser": "Depot", "reason": "Host-read Depot CI spot introduced by a segue announcing the sponsor break."},
+  {"category": "selfpromo", "start": 1563, "end": 1582, "confidence": "medium",
+   "borderline": false, "first_line": "You've been watching this video for much longer than the attention span of the average Twitter user.", "last_line": "Avoid it to the best of your ability.",
+   "advertiser": null, "reason": "Mid-video aside asking viewers to hit the subscribe button, framed by a Twitter joke."}
+]}

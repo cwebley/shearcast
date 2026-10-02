@@ -1,0 +1,53 @@
+{
+  "video_id": "NQzDpjDDWQw",
+  "channel": "gabfest",
+  "title": "Trump’s Latest Assault on the Press Is “Mind-Boggling,” Says Oliver Darcy.",
+  "duration": 1972,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 53,
+      "end": 130,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Okay, before we get to the point, I have a special message for my YouTube viewers. Hi, it's me, Mary.",
+      "last_line": "This was my special message.",
+      "advertiser": null,
+      "reason": "Host pitch for Slate Plus subscription with promo code whatnext50."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1891,
+      "end": 1939,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "The outlet where you don't get that verbose coverage is, of course, Status News, which Oliver's founder Oliver Darcy subscribes to. It's great.",
+      "last_line": "But I like to think that we operate in a way that it's not, you know, pandering to the authorities. And my philosophy is also that people always come...",
+      "advertiser": null,
+      "reason": "Hosts and guest plug the guest's own newsletter Status (status.news); guest's own product."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1939,
+      "end": 1953,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Support real people, including Slate.",
+      "last_line": "That 's literally how we get paid.",
+      "advertiser": null,
+      "reason": "Closing Slate Plus fundraising pitch with link in the episode description, before credits."
+    },
+    {
+      "category": "credits",
+      "start": 1953,
+      "end": 1965,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Uh, what's next off the record is produced by Paige Osborne.",
+      "last_line": "I'm here with Lizio Larry.",
+      "reason": "End-of-episode production credit roll naming the producer, Slate podcast staff, and the hosts.",
+      "labeler": "opus-credits",
+      "advertiser": null
+    }
+  ]
+}

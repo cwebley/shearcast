@@ -1,0 +1,41 @@
+{
+  "video_id": "568-39aOZkw",
+  "channel": "spacetime",
+  "title": "The Universe May Have Just Revealed the True Nature of Empty Space",
+  "duration": 1076,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 0,
+      "end": 2,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you to Displate for supporting PBS.",
+      "last_line": "Thank you to Displate for supporting PBS.",
+      "advertiser": "Displate",
+      "reason": "Opening sponsor credit for Displate (same caption line then starts the episode)."
+    },
+    {
+      "category": "selfpromo",
+      "start": 31,
+      "end": 108,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Hey everyone, before we get started, we wanted to let you know that we're experimenting with YouTube shorts starting next week.",
+      "last_line": "Links to the merch store in the description.",
+      "advertiser": null,
+      "reason": "Channel announcements: new Shorts, like/comment request, Patreon pitch and merch plug."
+    },
+    {
+      "category": "sponsor",
+      "start": 965,
+      "end": 1076,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Thank you to Displate for supporting PBS.",
+      "last_line": "There's details and a link description if you want to explore more.",
+      "advertiser": "Displate",
+      "reason": "Closing host-read Displate sponsor spot running to the end."
+    }
+  ]
+}

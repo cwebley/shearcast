@@ -1,0 +1,30 @@
+{
+  "video_id": "kGfvfGeVdrY",
+  "channel": "hank",
+  "title": "The Hockey Stick of Doom.",
+  "duration": 1999,
+  "segments": [
+    {
+      "category": "selfpromo",
+      "start": 452,
+      "end": 453,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "There's a link in the description.",
+      "last_line": "There's a link in the description.",
+      "advertiser": null,
+      "reason": "Host points to a description link for the guest's Climate Adam channel right after introducing him."
+    },
+    {
+      "category": "selfpromo",
+      "start": 1990,
+      "end": 1994,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Um I learned so much from you, and I hope that you'll go check out your channel.",
+      "last_line": "Um I learned so much from you, and I hope that you'll go check out your channel.",
+      "advertiser": null,
+      "reason": "Closing encouragement to check out the guest's channel."
+    }
+  ]
+}

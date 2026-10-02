@@ -16,6 +16,7 @@ package render
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -147,14 +148,33 @@ type CutOptions struct {
 	// Crossfade is how many seconds each join overlaps and blends, so a cut
 	// never lands as an audible click. Zero means a hard concat instead.
 	Crossfade float64
+	// BitrateKbps is the target AAC bitrate. Zero uses DefaultBitrateKbps.
+	BitrateKbps int
+}
+
+const DefaultBitrateKbps = 128
+
+// ValidateBitrate checks the supported AAC target range, in kilobits per second.
+func ValidateBitrate(kbps int) error {
+	if kbps < 32 || kbps > 320 {
+		return fmt.Errorf("bitrate must be between 32 and 320 kbps (got %d)", kbps)
+	}
+	return nil
 }
 
 func DefaultCutOptions() CutOptions {
-	return CutOptions{Crossfade: 0.05}
+	return CutOptions{Crossfade: 0.05, BitrateKbps: DefaultBitrateKbps}
 }
 
 // Range is a span of audio to keep, in seconds.
 type Range struct{ Start, End float64 }
+
+// EffectiveCrossfade is the crossfade Cut applies: the filter takes whole
+// milliseconds, so a positive value that rounds to zero means none at all,
+// not ffmpeg's one-second default. Timelines must use this value too.
+func EffectiveCrossfade(seconds float64) float64 {
+	return max(0, math.Round(seconds*1000)/1000)
+}
 
 // Cut keeps only the given ranges of audioPath, in order, joined with a
 // crossfade, and writes the result to outPath.
@@ -162,23 +182,22 @@ func Cut(ctx context.Context, audioPath string, keep []Range, outPath string, op
 	if len(keep) == 0 {
 		return fmt.Errorf("render: nothing to keep")
 	}
-	if opts.Crossfade < 0 {
-		opts.Crossfade = 0
+	opts.Crossfade = EffectiveCrossfade(opts.Crossfade)
+	if opts.BitrateKbps == 0 {
+		opts.BitrateKbps = DefaultBitrateKbps
+	}
+	if err := ValidateBitrate(opts.BitrateKbps); err != nil {
+		return err
 	}
 
+	args := []string{"-nostdin", "-y"}
 	var filter strings.Builder
-	for i, r := range keep {
-		fmt.Fprintf(&filter, "[0:a]atrim=start=%.3f:end=%.3f,asetpts=PTS-STARTPTS[s%d];", r.Start, r.End, i)
-	}
+	args = append(args, trimInputs(audioPath, keep, &filter)...)
 
 	label := "s0"
 	switch {
 	case len(keep) > 1 && opts.Crossfade > 0:
-		for i := 1; i < len(keep); i++ {
-			next := fmt.Sprintf("a%d", i)
-			fmt.Fprintf(&filter, "[%s][s%d]acrossfade=d=%.3f[%s];", label, i, opts.Crossfade, next)
-			label = next
-		}
+		label = appendCrossfades(&filter, keep, opts.Crossfade)
 	case len(keep) > 1:
 		var ins strings.Builder
 		for i := range keep {
@@ -192,18 +211,93 @@ func Cut(ctx context.Context, audioPath string, keep []Range, outPath string, op
 	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 		return err
 	}
-	cmd := exec.CommandContext(ctx, Binary, "-nostdin", "-y",
-		"-i", audioPath,
+	args = append(args,
 		"-filter_complex", graph,
 		"-map", "["+label+"]",
+		"-map_chapters", "-1", // source container chapters use the unedited timeline
+		"-c:a", "aac", "-b:a", strconv.Itoa(opts.BitrateKbps)+"k",
+		"-movflags", "+faststart", "-f", "ipod",
 		outPath,
 	)
+	cmd := exec.CommandContext(ctx, Binary, args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("ffmpeg cut: %w: %.800s", err, stderr.String())
 	}
 	return nil
+}
+
+// trimInputs partitions ranges across at most sixteen seeked readers. Feeding
+// every trim from one full-length reader makes each decoded frame visit every
+// branch. One reader per range avoids that work but duplicates the demuxer's
+// full-file index hundreds of times. A fixed reader cap bounds that memory.
+func trimInputs(audioPath string, keep []Range, filter *strings.Builder) []string {
+	const maxReaders = 16
+	groupSize := (len(keep) + maxReaders - 1) / maxReaders
+	var args []string
+	input := 0
+	for first := 0; first < len(keep); first += groupSize {
+		last := min(first+groupSize, len(keep))
+		start, end := keep[first].Start, keep[first].End
+		for _, r := range keep[first:last] {
+			start, end = math.Min(start, r.Start), math.Max(end, r.End)
+		}
+		// Decode at least a second of preroll so AAC's overlapping frames have
+		// their preceding samples. Seek on whole seconds to avoid fractional
+		// sample rounding differences at rates such as 44.1kHz. Do not seek to
+		// zero: that can skip the negative-timestamp priming packet in an M4A.
+		seek := math.Max(0, math.Floor(math.Round(start*1000)/1000)-1)
+		if seek > 0 {
+			args = append(args, "-ss", fmt.Sprintf("%.3f", seek))
+		}
+		args = append(args, "-t", fmt.Sprintf("%.3f", math.Round(end*1000)/1000-seek), "-i", audioPath)
+		for i := first; i < last; i++ {
+			fmt.Fprintf(filter, "[%d:a]atrim=start=%.3f:end=%.3f,asetpts=PTS-STARTPTS[s%d];",
+				input, math.Round(keep[i].Start*1000)/1000-seek, math.Round(keep[i].End*1000)/1000-seek, i)
+		}
+		input++
+	}
+	return args
+}
+
+// appendCrossfades builds a balanced join tree. A left-deep chain passes early
+// audio through every later acrossfade; balancing limits that depth to log2(N).
+// Disjoint fades produce the same samples regardless of join grouping.
+func appendCrossfades(filter *strings.Builder, keep []Range, crossfade float64) string {
+	// An interior section shorter than two fades has overlapping fade regions.
+	// Regrouping those multiplications changes the mix, so preserve the original
+	// left-to-right order for these unusual inputs. Use the same millisecond
+	// rounding as the atrim/acrossfade arguments.
+	for i, r := range keep {
+		fades := 2.0
+		if i == 0 || i == len(keep)-1 {
+			fades = 1
+		}
+		if math.Round(r.End*1000)-math.Round(r.Start*1000) < fades*math.Round(crossfade*1000) {
+			label := "s0"
+			for i := 1; i < len(keep); i++ {
+				next := fmt.Sprintf("a%d", i)
+				fmt.Fprintf(filter, "[%s][s%d]acrossfade=d=%.3f[%s];", label, i, crossfade, next)
+				label = next
+			}
+			return label
+		}
+	}
+	var next int
+	var join func(start, end int) string
+	join = func(start, end int) string {
+		if end-start == 1 {
+			return fmt.Sprintf("s%d", start)
+		}
+		mid := start + (end-start)/2
+		left, right := join(start, mid), join(mid, end)
+		label := fmt.Sprintf("a%d", next)
+		next++
+		fmt.Fprintf(filter, "[%s][%s]acrossfade=d=%.3f[%s];", left, right, crossfade, label)
+		return label
+	}
+	return join(0, len(keep))
 }
 
 // Probe returns the duration of a media file, using ffprobe. Used to report
@@ -220,11 +314,19 @@ func Probe(ctx context.Context, path string) (time.Duration, error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
+		var exit *exec.ExitError
+		if errors.As(err, &exit) && ctx.Err() == nil {
+			err = fmt.Errorf("%w: %w", ErrUnreadableMedia, err)
+		}
 		return 0, fmt.Errorf("ffprobe: %w: %.500s", err, stderr.String())
 	}
 	seconds, err := strconv.ParseFloat(strings.TrimSpace(stdout.String()), 64)
 	if err != nil {
-		return 0, fmt.Errorf("ffprobe: parsing duration %q: %w", stdout.String(), err)
+		return 0, fmt.Errorf("ffprobe: %w: parsing duration %q: %w", ErrUnreadableMedia, stdout.String(), err)
 	}
 	return time.Duration(seconds * float64(time.Second)), nil
 }
+
+// ErrUnreadableMedia marks a Probe failure caused by the file itself, as
+// opposed to cancellation or a missing ffprobe.
+var ErrUnreadableMedia = errors.New("unreadable media")

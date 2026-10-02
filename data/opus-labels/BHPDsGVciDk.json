@@ -1,0 +1,19 @@
+{
+  "video_id": "BHPDsGVciDk",
+  "channel": "primetime",
+  "title": "This Might Be the Best AI Release of 2026",
+  "duration": 727,
+  "segments": [
+    {
+      "category": "sponsor",
+      "start": 97,
+      "end": 146,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "But of course, before we begin, a quick thank you from the sponsor, Vibe Coders. Silence.",
+      "last_line": "com links in the description.",
+      "advertiser": "WorkOS",
+      "reason": "Host-read sponsor spot for WorkOS."
+    }
+  ]
+}
