@@ -250,6 +250,42 @@ Specification review caught a coverage report that omitted dropped regions; the
 analysis and narrative were corrected, then independently reverified with no
 remaining findings. Production detector code and fitted weights stayed frozen.
 
+### Opt-in configuration, 2026-10-04
+
+`[jev] conservative_ambiguous_end` now sets `ConservativeAmbiguousEnd` through
+`Config.DetectOptions`, so `render`, `sync` and `cmd/redetect` collection all
+resolve it the same way. It defaults to false. No rule, threshold, prompt,
+feature, weight or start-selection logic changed. Config tests cover the
+omitted, false and true cases and check that no other option moves.
+
+`internal/pipeline/ambiguous_end_test.go` runs `RenderEpisode` on generated
+180s audio with silences near both joins, using a local model fixture that
+matches the detector's ambiguous-closing case. Off, the 90-180s cut runs to
+the end of the file and the keep range is `[0, 89.9]`. On, the cut ends at
+150s, and after snapping the keep ranges are `[0, 89.9]` and `[150.5, 180]`.
+The rendered duration matches the keep ranges, and the render record saves the
+setting. With the setting on, missing end weights and `min_region = 61` both
+reproduce the default cut.
+
+Replay doesn't read live config, so recorded decisions should be unaffected.
+Fresh replays of the 44 development episodes and the six independent episodes
+confirm it. The default and candidate outputs in
+`work/edge-evaluation-20261002/config-integration-20261004/` match the earlier
+`ambiguous-end-baseline-verified`, `ambiguous-end-candidate`, `baseline-replayed`
+and `candidate` decisions, with no mismatches or incomplete episodes. The only
+default/candidate difference is still the Space Time `YSwRqNCeP9k` repair.
+
+The frozen evaluation code is committed as `fd7640a`. The independent
+`compare.py` used to hash frozen files from the working tree, so this change to
+`internal/config/config.go` broke it. It now hashes them from that commit with
+`git show`, which checks the same bytes against the same `settings-freeze.json`.
+Both evaluations pass again and produce identical `comparison.json` files.
+
+Limits: the rendered check uses synthetic noise, so it shows the joins land
+where intended but says nothing about how the Space Time repair sounds. No
+cached source audio was checked for a listening pass, and the user's config
+still has the setting off.
+
 ## Keep the core approach
 
 Use captions to locate unwanted passages and audio pauses to refine the cuts.

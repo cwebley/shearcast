@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -224,5 +225,32 @@ func TestSlugsMustDifferByMoreThanCase(t *testing.T) {
 	// A case-insensitive filesystem would give both channels one directory.
 	if _, err := Load(writeConfig(t, "[[channels]]\nslug='Show'\n[[channels]]\nslug='show'\n")); err == nil {
 		t.Fatal("accepted Show and show")
+	}
+}
+
+func TestConservativeAmbiguousEndIsOptIn(t *testing.T) {
+	for _, tc := range []struct {
+		name, body string
+		want       bool
+	}{
+		{"omitted", "[jev]\nmodel = 'test'", false},
+		{"false", "[jev]\nconservative_ambiguous_end = false", false},
+		{"true", "[jev]\nconservative_ambiguous_end = true", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg, err := Load(writeConfig(t, tc.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := cfg.DetectOptions(nil)
+			if got.ConservativeAmbiguousEnd != tc.want {
+				t.Fatalf("ConservativeAmbiguousEnd = %v, want %v", got.ConservativeAmbiguousEnd, tc.want)
+			}
+			want := Default().DetectOptions(nil)
+			want.ConservativeAmbiguousEnd = tc.want
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("setting changed other detector options:\n got %+v\nwant %+v", got, want)
+			}
+		})
 	}
 }

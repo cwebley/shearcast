@@ -35,6 +35,10 @@ parallel = 4
 # weak_anchor_threshold = 0.01  # windows above this get their sentences checked
 # localized_threshold = 0.95    # how sure a sentence must be to be cut
 # outro_trim_floor = 0.9        # an outro starts at its first sentence this sure
+# Experimental, off by default. When the end of a promo is unclear and end
+# weights score everything after it as program, keep that closing talk instead
+# of cutting it. Needs end weights. Affects new renders only.
+# conservative_ambiguous_end = false
 
 [audio]
 # AAC target bitrate, 32 through 320 kbps. Applies to newly rendered episodes.

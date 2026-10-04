@@ -49,6 +49,18 @@ Fitted end-edge weights (`end-weights.json`, found beside the start weights, or
 `[jev] end_weights`) are optional too. They only move a closing edge later, past
 a pitch's tail that the predicate reads as the program returning.
 
+`[jev] conservative_ambiguous_end = true` turns on an experimental closing-edge
+rule. It is off by default. Sometimes the model can't tell where a promo ends
+and its last window runs into closing talk. With the rule on, if the end
+weights score all of that talk as program, Shearcast keeps it rather than
+cutting through to the window's end. It does nothing without end weights, and
+it applies only when the shorter cut still meets `min_region`. On the development set it changed
+one cut out of 97, and on six further videos it changed none. The render record
+saves the setting under `detection_options`. Turning it on doesn't touch
+episodes that are already rendered. To apply it to one, run
+`shearcast episode reprocess <video-id> -channel <slug>`, or `render` and then
+`publish`. Either reruns detection, so it costs model tokens.
+
 When working on Shearcast itself, run `go run ./cmd/shearcast` or build with
 `go build -o shearcast ./cmd/shearcast` and use `./shearcast`, so the installed
 copy keeps working while you change the code.

@@ -55,6 +55,10 @@ type Jev struct {
 	EndFitWindow     int     `toml:"end_fit_window"`
 	ClusterBridgeGap float64 `toml:"cluster_bridge_gap"`
 	SegmentMergeGap  float64 `toml:"segment_merge_gap"`
+
+	// ConservativeAmbiguousEnd is an experiment, off by default; see
+	// detect.Options.ConservativeAmbiguousEnd.
+	ConservativeAmbiguousEnd bool `toml:"conservative_ambiguous_end"`
 }
 
 // Channel is one source, published as its own podcast feed.
@@ -380,6 +384,7 @@ func (c *Config) DetectOptions(ruleIDs []string) detect.Options {
 	setI(&o.MaxCandidates, j.MaxCandidates)
 	setI(&o.Parallel, j.Parallel)
 	setI(&o.EndFitWindow, j.EndFitWindow)
+	o.ConservativeAmbiguousEnd = j.ConservativeAmbiguousEnd
 	return o
 }
 
@@ -442,6 +447,7 @@ func mergeJev(dst *Jev, src Jev) {
 	dst.ContextSpan, dst.MinRegion = src.ContextSpan, src.MinRegion
 	dst.EndFitWindow = src.EndFitWindow
 	dst.ClusterBridgeGap, dst.SegmentMergeGap = src.ClusterBridgeGap, src.SegmentMergeGap
+	dst.ConservativeAmbiguousEnd = src.ConservativeAmbiguousEnd
 	if src.EndWeights != "" {
 		dst.EndWeights = src.EndWeights
 	}
