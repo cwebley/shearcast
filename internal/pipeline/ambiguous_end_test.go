@@ -139,16 +139,18 @@ func TestConservativeAmbiguousEndPreservesClosingContentInRender(t *testing.T) {
 		configure func(*config.Config)
 		want      func([]render.Range) bool
 	}{
-		{"default cuts the closing discussion", false, nil, throughEnd},
-		{"enabled keeps the closing discussion", true, nil, promoOnly},
-		{"enabled without end weights is unchanged", true, func(c *config.Config) { c.Jev.EndWeights = "" }, throughEnd},
-		{"enabled below minimum region is unchanged", true, func(c *config.Config) { c.Jev.MinRegion = 61 }, throughEnd},
+		{"disabled cuts the closing discussion", false, nil, throughEnd},
+		{"default keeps the closing discussion", true, nil, promoOnly},
+		{"default without end weights is unchanged", true, func(c *config.Config) { c.Jev.EndWeights = "" }, throughEnd},
+		{"default below minimum region is unchanged", true, func(c *config.Config) { c.Jev.MinRegion = 61 }, throughEnd},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cfg := config.Default()
 			cfg.Jev.WeakThreshold = 1
 			cfg.Jev.Weights, cfg.Jev.EndWeights = startWeights, endWeights
-			cfg.Jev.ConservativeAmbiguousEnd = tc.enabled
+			if !tc.enabled {
+				cfg.Jev.ConservativeAmbiguousEnd = false
+			}
 			if tc.configure != nil {
 				tc.configure(cfg)
 			}

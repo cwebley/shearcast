@@ -56,8 +56,8 @@ type Jev struct {
 	ClusterBridgeGap float64 `toml:"cluster_bridge_gap"`
 	SegmentMergeGap  float64 `toml:"segment_merge_gap"`
 
-	// ConservativeAmbiguousEnd is an experiment, off by default; see
-	// detect.Options.ConservativeAmbiguousEnd.
+	// ConservativeAmbiguousEnd is on by default; set it false for the older
+	// closing edge. See detect.Options.ConservativeAmbiguousEnd.
 	ConservativeAmbiguousEnd bool `toml:"conservative_ambiguous_end"`
 }
 
@@ -134,6 +134,8 @@ func Default() *Config {
 		Jev: Jev{
 			Model:    "typesafe/jev-1.13",
 			Parallel: 4,
+
+			ConservativeAmbiguousEnd: true,
 		},
 	}
 }
@@ -247,6 +249,9 @@ func decode(data []byte, cfg *Config) (*Config, error) {
 		cfg.Channels = file.Channels
 	}
 	mergeJev(&cfg.Jev, file.Jev)
+	if md.IsDefined("jev", "conservative_ambiguous_end") {
+		cfg.Jev.ConservativeAmbiguousEnd = file.Jev.ConservativeAmbiguousEnd
+	}
 
 	if err := cfg.validate(); err != nil {
 		return nil, err
@@ -447,7 +452,6 @@ func mergeJev(dst *Jev, src Jev) {
 	dst.ContextSpan, dst.MinRegion = src.ContextSpan, src.MinRegion
 	dst.EndFitWindow = src.EndFitWindow
 	dst.ClusterBridgeGap, dst.SegmentMergeGap = src.ClusterBridgeGap, src.SegmentMergeGap
-	dst.ConservativeAmbiguousEnd = src.ConservativeAmbiguousEnd
 	if src.EndWeights != "" {
 		dst.EndWeights = src.EndWeights
 	}

@@ -228,12 +228,13 @@ func TestSlugsMustDifferByMoreThanCase(t *testing.T) {
 	}
 }
 
-func TestConservativeAmbiguousEndIsOptIn(t *testing.T) {
+func TestConservativeAmbiguousEndIsOnUnlessDisabled(t *testing.T) {
 	for _, tc := range []struct {
 		name, body string
 		want       bool
 	}{
-		{"omitted", "[jev]\nmodel = 'test'", false},
+		{"no jev table", "", true},
+		{"omitted", "[jev]\nmodel = 'test'", true},
 		{"false", "[jev]\nconservative_ambiguous_end = false", false},
 		{"true", "[jev]\nconservative_ambiguous_end = true", true},
 	} {

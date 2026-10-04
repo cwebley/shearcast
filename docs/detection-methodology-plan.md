@@ -283,8 +283,19 @@ Both evaluations pass again and produce identical `comparison.json` files.
 
 Limits: the rendered check uses synthetic noise, so it shows the joins land
 where intended but says nothing about how the Space Time repair sounds. No
-cached source audio was checked for a listening pass, and the user's config
-still has the setting off.
+cached source audio was checked for a listening pass.
+
+### Default on, 2026-10-04
+
+`config.Default` now turns the setting on, and only an explicit
+`conservative_ambiguous_end = false` turns it off. `detect.Defaults` still
+leaves it off, so replays of recorded options and direct detector callers are
+unchanged. This was a product decision on thin evidence: the rule changed one
+of 97 development cuts and none of six independent episodes. Its only effect
+is to keep more audio under guarded conditions, so the risk is leaving a short
+promo tail in, not cutting content. Watch new renders whose `EndReason` reads
+"preserved low-ad anchor tail" for that failure, and keep collecting a
+transcript-screened sample of promos followed by real closing discussion.
 
 ## Keep the core approach
 

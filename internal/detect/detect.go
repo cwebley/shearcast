@@ -138,7 +138,8 @@ type Options struct {
 	// ConservativeAmbiguousEnd opts into preserving a low-ad anchor tail when
 	// the return predicate is ambiguous and no in-anchor ad candidate remains.
 	// It requires end weights, scores at most 1-EndExtendFloor throughout that
-	// tail, and a cut still meeting MinRegion. Default behavior is unchanged.
+	// tail, and a cut still meeting MinRegion. Defaults leaves it off so replays
+	// and direct callers keep the older edge; config.Default turns it on.
 	ConservativeAmbiguousEnd bool
 
 	// WeakAnchorThreshold, when set below AnchorThreshold, makes windows
