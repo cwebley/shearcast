@@ -43,9 +43,11 @@ func ParseVTT(r io.Reader) ([]Cue, error) {
 	scanner.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
 
 	var (
-		cues    []Cue
-		pending *Cue
-		body    []string
+		cues      []Cue
+		pending   *Cue
+		body      []string
+		lastStart float64
+		hasTiming bool
 	)
 
 	flush := func() {
@@ -73,6 +75,12 @@ func ParseVTT(r io.Reader) ([]Cue, error) {
 			if end <= start {
 				return nil, fmt.Errorf("cue ends before it starts: %q", trimmed)
 			}
+			// Validate raw timing order before deduplication can remove a
+			// repeated caption and conceal a backwards timestamp. Overlap is valid.
+			if hasTiming && start < lastStart {
+				return nil, fmt.Errorf("cue starts out of chronological order: %q", trimmed)
+			}
+			lastStart, hasTiming = start, true
 			pending = &Cue{Start: start, End: end}
 			continue
 		}

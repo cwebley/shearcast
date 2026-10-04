@@ -3,8 +3,10 @@ package detect
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
+	"slices"
 )
 
 // Weights is a fitted linear combination of the per-sentence features.
@@ -46,8 +48,10 @@ func LoadWeights(path string) (*Weights, error) {
 // feature that is not being measured degrades gracefully instead of panicking.
 func (w *Weights) Score(values map[string]float64) float64 {
 	z := w.Bias
-	for id, coef := range w.Weights {
-		z += coef * values[id]
+	// Stable accumulation keeps identical evidence reproducible, including
+	// changepoints whose competing fits differ only at floating-point precision.
+	for _, id := range slices.Sorted(maps.Keys(w.Weights)) {
+		z += w.Weights[id] * values[id]
 	}
 	return 1 / (1 + math.Exp(-clamp(z, -30, 30)))
 }

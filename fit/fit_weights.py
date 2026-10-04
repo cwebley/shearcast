@@ -24,6 +24,7 @@ no extension for the end.
 
     python3 fit/fit_weights.py [-edge end]           # cross-validate, print the comparison
     python3 fit/fit_weights.py [-edge end] -write    # also refit on everything and write the weights
+    python3 fit/fit_weights.py [-edge end] -write -out work/candidate.json  # keep shipped weights intact
     python3 fit/fit_weights.py [-edge end] -v        # list every held-out edge off by more than 5s
 """
 import glob, json, math, os, sys
@@ -222,6 +223,12 @@ def evaluate(regions, labels, scorer):
 
 def main():
     args = sys.argv[1:]
+    output = WEIGHTS
+    if "-out" in args:
+        i = args.index("-out")
+        if "-write" not in args or i + 1 >= len(args) or args[i + 1].startswith("-"):
+            raise SystemExit("-out requires -write and an output path")
+        output = args[i + 1]
     labels = load_labels()
     rows = [json.loads(l) for l in open(FEATURES)]
 
@@ -274,8 +281,9 @@ def main():
                "videos": len({r["video"] for r in train}),
                "rows": len(train),
                "weights": {f: round(c, 4) for f, c in sorted(model["weights"].items())}}
-        open(WEIGHTS, "w").write(json.dumps(out, indent=2) + "\n")
-        print(f"\nwrote {WEIGHTS}")
+        with open(output, "w") as f:
+            f.write(json.dumps(out, indent=2) + "\n")
+        print(f"\nwrote {output}")
 
 
 if __name__ == "__main__":

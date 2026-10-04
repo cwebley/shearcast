@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"math"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -64,16 +66,11 @@ func (c Cache) Cues(ctx context.Context, v *Video) ([]transcript.Cue, error) {
 		return nil, err
 	}
 	defer f.Close()
-	cues, err := transcript.ParseVTT(f)
+	cues, err := parseUsableCues(f)
 	if err != nil {
 		f.Close()
 		os.Remove(path) // do not turn malformed cached captions into a permanent failure
-		return nil, fmt.Errorf("parsing captions: %w", err)
-	}
-	if len(transcript.Windows(cues, "W", 30, 45)) == 0 {
-		f.Close()
-		os.Remove(path)
-		return nil, fmt.Errorf("caption track contains no usable text")
+		return nil, err
 	}
 	return cues, nil
 }
@@ -139,6 +136,47 @@ func (c Cache) Cached(id string) bool {
 	}
 	_, ok := cachedTrack(c.videoDir(id))
 	return ok
+}
+
+// CachedInputs loads usable detection inputs strictly from disk. Missing,
+// outdated or invalid inputs are errors; this never invokes yt-dlp, refreshes
+// metadata, or removes malformed captions.
+func (c Cache) CachedInputs(id string) (*Video, []transcript.Cue, error) {
+	if !validID(id) {
+		return nil, nil, fmt.Errorf("invalid video id %q", id)
+	}
+	v, ok := c.readInfo(id)
+	if !ok {
+		return nil, nil, fmt.Errorf("missing, outdated or invalid cached metadata in %s", c.videoDir(id))
+	}
+	if strings.TrimSpace(v.Title) == "" || v.Duration <= 0 || math.IsNaN(v.Duration) || math.IsInf(v.Duration, 0) {
+		return nil, nil, fmt.Errorf("cached metadata needs a title and positive finite duration in %s", c.videoDir(id))
+	}
+	path, err := pickTrack(c.videoDir(id))
+	if err != nil {
+		return nil, nil, fmt.Errorf("cached captions in %s: %w", c.videoDir(id), err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer f.Close()
+	cues, err := parseUsableCues(f)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cached captions %s: %w", path, err)
+	}
+	return v, cues, nil
+}
+
+func parseUsableCues(r io.Reader) ([]transcript.Cue, error) {
+	cues, err := transcript.ParseVTT(r)
+	if err != nil {
+		return nil, fmt.Errorf("parsing captions: %w", err)
+	}
+	if len(transcript.Windows(cues, "W", 30, 45)) == 0 {
+		return nil, fmt.Errorf("caption track contains no usable text")
+	}
+	return cues, nil
 }
 
 func (c Cache) videoDir(id string) string {

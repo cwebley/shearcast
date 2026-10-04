@@ -470,6 +470,7 @@ fetches feeds on-device; Pocket Casts' server-side fetcher cannot reach your LAN
 cmd/shearcast/        CLI: init, render, publish, sync, serve, doctor, status, channel, episode, transcript
 cmd/renderbench/      local-only renderer measurement driver
 cmd/redetect/         rerun detection without audio rendering
+cmd/replay/           replay the production detector against recorded model evidence
 cmd/featuredump/      export model feature answers for offline fitting
 fit/                 fitting and scoring tools; see fit/README.md
 scripts/             process-tree and working-disk measurement

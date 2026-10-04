@@ -109,6 +109,10 @@ type Options struct {
 	// transcript to sample.
 	Subject string
 
+	// NeutralContext is an opt-in experiment that labels coarse context as
+	// uncertain while preserving the quoted text and boundary questions.
+	NeutralContext bool
+
 	// StartWeights, when set, replaces the single predicate on the opening edge
 	// with a fitted combination of narrow per-sentence features.
 	//
@@ -130,6 +134,12 @@ type Options struct {
 	// production credits labeled as cuttable, 0.6 did best: 108s left in.
 	EndWeights     *Weights
 	EndExtendFloor float64
+
+	// ConservativeAmbiguousEnd opts into preserving a low-ad anchor tail when
+	// the return predicate is ambiguous and no in-anchor ad candidate remains.
+	// It requires end weights, scores at most 1-EndExtendFloor throughout that
+	// tail, and a cut still meeting MinRegion. Default behavior is unchanged.
+	ConservativeAmbiguousEnd bool
 
 	// WeakAnchorThreshold, when set below AnchorThreshold, makes windows
 	// scoring between the two into leads rather than anchors: each lead's
@@ -421,11 +431,19 @@ type ScoredWindow struct {
 
 // Detector runs the stages against a client.
 type Detector struct {
-	Client *jev.Client
+	Client ModelClient
 	Opts   Options
 }
 
-func New(client *jev.Client, opts Options) *Detector {
+// ModelClient is the model evidence consumed by detection. Recorded evidence
+// implements the same interface so offline evaluation executes Run itself.
+type ModelClient interface {
+	Ask(context.Context, string, map[string]jev.Question) (*jev.Response, error)
+	AskAll(context.Context, []jev.Batch, int) (map[string]jev.Answer, error)
+	Stats() jev.Stats
+}
+
+func New(client ModelClient, opts Options) *Detector {
 	opts.fill()
 	return &Detector{Client: client, Opts: opts}
 }
@@ -777,7 +795,8 @@ func (d *Detector) bound(ctx context.Context, cues []transcript.Cue, c cluster) 
 			// often a lead-in it scores lower) and let the walk below run from
 			// there. Only inside the anchor: past it, the first ad-scored
 			// sentence can be a different read minutes away. With no such
-			// sentence, or no weights, keep the anchor's end.
+			// sentence, or no weights, keep the anchor's end unless the
+			// opt-in conservative fallback supports a low-ad tail.
 			first := -1
 			for i, s := range after {
 				if fitted != nil && s.Start >= region.Start && s.Start < c.end && fitted[i] >= d.Opts.EndExtendFloor {
@@ -788,8 +807,29 @@ func (d *Detector) bound(ctx context.Context, cues []transcript.Cue, c cluster) 
 			if first >= 0 {
 				edge.idx = first
 			} else {
+				// A mixed anchor can include closing discussion after a promo.
+				// Preserve it only when the entire remaining in-anchor tail is
+				// low-ad, not just one sentence, and the cut will not be dropped.
+				lowTail, low := -1, true
+				if d.Opts.ConservativeAmbiguousEnd && fitted != nil && d.Opts.EndExtendFloor > 0.5 && d.Opts.EndExtendFloor <= 1 {
+					for i, s := range after {
+						if s.Start < region.Start || s.Start >= c.end {
+							continue
+						}
+						if lowTail < 0 {
+							lowTail = i
+						}
+						if fitted[i] > 1-d.Opts.EndExtendFloor {
+							low = false
+						}
+					}
+				}
 				for edge.idx < len(after) && after[edge.idx].Start < c.end {
 					edge.idx++
+				}
+				if lowTail >= 0 && low && after[lowTail].Start-region.Start >= d.Opts.MinRegion {
+					edge.idx = lowTail
+					edge.reason = "ambiguous, preserved low-ad anchor tail"
 				}
 			}
 		}
@@ -1025,40 +1065,60 @@ func (d *Detector) candidates(cues []transcript.Cue, from, to float64, prefix st
 func (d *Detector) startState(cues []transcript.Cue, c cluster, before []transcript.Sentence) string {
 	var b strings.Builder
 	if subject := d.subject(cues, c); subject != "" {
-		b.WriteString("WHAT THIS PROGRAM IS ACTUALLY ABOUT:\n")
+		if d.Opts.NeutralContext {
+			b.WriteString("TITLE AND NEARBY TRANSCRIPT CONTEXT:\n")
+		} else {
+			b.WriteString("WHAT THIS PROGRAM IS ACTUALLY ABOUT:\n")
+		}
 		b.WriteString(subject)
 		b.WriteString("\n\n")
 	}
-	b.WriteString("CANDIDATE SENTENCES, IN ORDER. THE ADVERTISEMENT BEGINS SOMEWHERE IN THIS RANGE:\n")
+	if d.Opts.NeutralContext {
+		b.WriteString("CANDIDATE SENTENCES, IN ORDER, AROUND THE SUSPECTED START:\n")
+	} else {
+		b.WriteString("CANDIDATE SENTENCES, IN ORDER. THE ADVERTISEMENT BEGINS SOMEWHERE IN THIS RANGE:\n")
+	}
 	b.WriteString(transcript.SentenceText(before))
-	b.WriteString("\nTHE ADVERTISEMENT THAT FOLLOWS THESE SENTENCES:\n")
+	if d.Opts.NeutralContext {
+		b.WriteString("\nCOARSE ANCHOR EXCERPT, WHICH MAY INCLUDE BOTH UNWANTED MATERIAL AND PROGRAM CONTENT:\n")
+	} else {
+		b.WriteString("\nTHE ADVERTISEMENT THAT FOLLOWS THESE SENTENCES:\n")
+	}
 	b.WriteString(excerpt(c.text, 1200))
 	return b.String()
 }
 
 func (d *Detector) endState(c cluster, after []transcript.Sentence) string {
 	var b strings.Builder
-	b.WriteString("THE ADVERTISEMENT ALREADY UNDERWAY:\n")
+	if d.Opts.NeutralContext {
+		b.WriteString("COARSE ANCHOR EXCERPT, WHICH MAY INCLUDE BOTH UNWANTED MATERIAL AND PROGRAM CONTENT:\n")
+	} else {
+		b.WriteString("THE ADVERTISEMENT ALREADY UNDERWAY:\n")
+	}
 	b.WriteString(excerpt(c.text, 1200))
-	b.WriteString("\n\nCANDIDATE SENTENCES, IN ORDER. THE ADVERTISEMENT ENDS SOMEWHERE IN THIS RANGE:\n")
+	if d.Opts.NeutralContext {
+		b.WriteString("\n\nCANDIDATE SENTENCES, IN ORDER, AROUND THE SUSPECTED END:\n")
+	} else {
+		b.WriteString("\n\nCANDIDATE SENTENCES, IN ORDER. THE ADVERTISEMENT ENDS SOMEWHERE IN THIS RANGE:\n")
+	}
 	b.WriteString(transcript.SentenceText(after))
 	return b.String()
 }
 
-// subject tells the model what the video is actually about.
-//
-// Two sources, because either alone can fail. The title is authoritative and
-// always present. A sample of narration taken from after the read is known to
-// be on topic, which the transcript before a read is not: these channels open
-// with a cold open and drop the sponsor two minutes in, so "the passage before
-// the candidates" is often either empty or already part of the set-up.
+// subject supplies the title and text after the coarse anchor. That text may
+// still contain unwanted material; NeutralContext experiments with acknowledging
+// this uncertainty without changing the sample used by the existing weights.
 func (d *Detector) subject(cues []transcript.Cue, c cluster) string {
 	var parts []string
 	if d.Opts.Subject != "" {
 		parts = append(parts, "Title: "+d.Opts.Subject)
 	}
 	if sample := joinCues(transcript.Slice(cues, c.end, c.end+d.Opts.ContextSpan)); sample != "" {
-		parts = append(parts, "A passage of the video's own narration:\n"+excerpt(sample, 1200))
+		heading := "A passage of the video's own narration:\n"
+		if d.Opts.NeutralContext {
+			heading = "A transcript passage after the coarse anchor, which may still include unwanted material:\n"
+		}
+		parts = append(parts, heading+excerpt(sample, 1200))
 	}
 	return strings.Join(parts, "\n\n")
 }
