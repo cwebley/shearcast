@@ -1,0 +1,17 @@
+{
+  "video_id": "8hwcDaX3ISg",
+  "channel": "decoder",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 1081,
+      "end": 1087,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I'm also dying to know what you think, anything I got wrong here, anything Alex missed in his questions, or anything else you wish Mark would get asked.",
+      "last_line": "I'm also dying to know what you think, anything I got wrong here, anything Alex missed in his questions, or anything else you wish Mark would get asked.",
+      "reason": "Host invites audience feedback ('drop your thoughts'), a contact-the-show ask, though it points to YouTube comments and runs straight into a subscribe promo, so it may read as engagement promo rather than credits.",
+      "excluded": "engagement ask, not contact; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+ "video_id": "-xJOQXFk3hI",
+ "channel": "hutchins",
+ "segments": [
+  {
+   "category": "credits",
+   "start": 3713,
+   "end": 3718,
+   "confidence": "high",
+   "borderline": false,
+   "first_line": "And as always, email for me is podcastallhacks. com. I read everyone.",
+   "last_line": "And as always, email for me is podcastallhacks. com. I read everyone.",
+   "reason": "Show contact email and 'I read every one' line, followed by the sign-off."
+  }
+ ]
+}

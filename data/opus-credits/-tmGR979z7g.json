@@ -1,0 +1,18 @@
+{
+  "video_id": "-tmGR979z7g",
+  "channel": "klatt",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 2900.0,
+      "end": 2914.0,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "More on them on Wednesday. More on&m on Wednesday.",
+      "last_line": "All that coming up on Wednesday with a lot more.",
+      "reason": "Teaser for topics on the show's next (Wednesday) episode, followed by subscribe/review asks.",
+      "time_corrected": "labeled 1100, but first_line is at 2900 in the transcript (minutes conversion error); moved on 2026-09-28",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

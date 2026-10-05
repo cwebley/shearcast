@@ -1,0 +1,17 @@
+{
+  "video_id": "ejjBbaq9RmY",
+  "channel": "t3",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 1692,
+      "end": 1704,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I talk about a lot of these layers in a video coming out soon all about how Anthropic made the performance for the cloud site and desktop app three times faster because the systems you build to verify these changes are just as important as the raw source code itself.",
+      "last_line": "I talk about a lot of these layers in a video coming out soon all about how Anthropic made the performance for the cloud site and desktop app three times faster because the systems you build to verify these changes are just as important as the raw source code itself.",
+      "reason": "Teaser for an upcoming video on this channel, but woven into the wrap-up and could be read as self-promotion instead.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

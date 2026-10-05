@@ -1,0 +1,28 @@
+{
+  "video_id": "jgGyX7MPPVg",
+  "channel": "t3",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 2338,
+      "end": 2366,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "That all said, I am still quite excited to dive deeper into GBD6 Soul and see what it is capable of.",
+      "last_line": "So, I cannot wait to dive deeper into what OpenAI has been doing.",
+      "reason": "Teaser for an upcoming video on GPT-6 Soul, though the middle lines are OpenAI-vs-Anthropic commentary that could count as content.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 2369,
+      "end": 2383,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I can't believe this week's been so chaotic and it's only Tuesday.",
+      "last_line": "So, make sure you stay tuned because there's going to be a lot of stuff to cover and I have a feeling I will not be sleeping enough this week.",
+      "reason": "Teases upcoming coverage (OpenAI dev day next week, 'stay tuned'), but it reads partly as a channel-promo/sign-off aside.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

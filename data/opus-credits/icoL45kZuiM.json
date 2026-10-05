@@ -1,0 +1,27 @@
+{
+  "video_id": "icoL45kZuiM",
+  "channel": "nytdaily",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 1,
+      "end": 11,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "From The New York Times, I'm Rachel Abrams, and this is The Daily.",
+      "last_line": "From The New York Times, I'm Rachel Abrams, and this is The Daily.",
+      "reason": "Opening network identification ('From The New York Times'), though it doubles as the show's standard host intro.",
+      "excluded": "sign-on; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 2000,
+      "end": 2027,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "Today's episode was produced by Diana Winn and Alex Stern, [music] with help from Ricky Novetsky and edited by Lisa Chow.",
+      "last_line": "Our theme music is by Wonderly.",
+      "reason": "Production credit roll: producers, editor, music, engineer and theme music."
+    }
+  ]
+}

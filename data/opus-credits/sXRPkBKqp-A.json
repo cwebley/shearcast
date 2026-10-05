@@ -1,0 +1,18 @@
+{
+  "video_id": "sXRPkBKqp-A",
+  "channel": "hotu",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 3516.0,
+      "end": 3519.0,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "You've been watching the entire history of the universe.",
+      "last_line": "You've been watching the entire history of the universe.",
+      "reason": "Show-name identification in the outro; arguably just part of the sign-off, followed by a like/subscribe ask.",
+      "time_corrected": "labeled 2196, but first_line is at 3516 in the transcript (minutes conversion error); moved on 2026-09-28",
+      "excluded": "sign-off; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

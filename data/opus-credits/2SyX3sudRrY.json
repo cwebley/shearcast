@@ -1,0 +1,5 @@
+{"video_id": "2SyX3sudRrY", "channel": "vergecast", "segments": [
+  {"category": "credits", "start": 5477, "end": 5497, "confidence": "high",
+   "borderline": false, "first_line": "We'd love to hear from you.", "last_line": "Today's show is produced by Josh Kahas, Eric Gomez, Brandon Kefir, and Travis Larch. We'll see you next week.",
+   "reason": "Contact email and hotline followed by network identification and producer credits, ending before the closing Sonos ad."}
+]}

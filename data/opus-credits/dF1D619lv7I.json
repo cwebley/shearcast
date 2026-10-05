@@ -1,0 +1,27 @@
+{
+  "video_id": "dF1D619lv7I",
+  "channel": "hutchins",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 2990,
+      "end": 2999,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you have any feedback, thoughts, questions on this episode or anything else, you can always reach out podcastallhacks. com. I read every email.",
+      "last_line": "If you have any feedback, thoughts, questions on this episode or anything else, you can always reach out podcastallhacks. com. I read every email.",
+      "reason": "Show contact email and 'I read every email'."
+    },
+    {
+      "category": "credits",
+      "start": 3005,
+      "end": 3011,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I won't see you next week.",
+      "last_line": "I'm taking next week off, but I will be back the week after.",
+      "reason": "Schedule notice about the next episode being skipped; housekeeping about upcoming episodes but close to a sign-off.",
+      "excluded": "schedule note, sign-off; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

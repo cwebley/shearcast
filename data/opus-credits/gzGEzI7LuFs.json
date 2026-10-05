@@ -1,0 +1,48 @@
+{
+  "video_id": "gzGEzI7LuFs",
+  "channel": "hutchins",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 3755,
+      "end": 3769,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "So, I also might redo the award search tool landscape episode for hotel and airline tools in the future.",
+      "last_line": "Right now, it surprisingly hasn't changed enough to justify it, but if things change, I will definitely update that.",
+      "reason": "Vague teaser for a possible future episode of this show.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 3920,
+      "end": 3926,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I'm sure there might be something I missed, but if I did, send me a note.",
+      "last_line": "I'd love to share it as an update in the future.",
+      "reason": "Invitation to contact the host with corrections, lightly tied to the content."
+    },
+    {
+      "category": "credits",
+      "start": 3994,
+      "end": 4018,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "I'm still going to do a similar deep dive on Merit Bonvoy, Hilton Honors, and maybe all of the others combined since I don't think any of the other programs I could fill this much time, but I still use those other programs.",
+      "last_line": "And then Bonvoy, I probably should go back and kind of do a little deeper dive as to where things stand just to kind of be consistent.",
+      "reason": "Teaser for upcoming deep-dive episodes of this show.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 4019,
+      "end": 4024,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "If you have question, feedback, things I missed, email us podcastallahthehacks. com.",
+      "last_line": "If you have question, feedback, things I missed, email us podcastallahthehacks. com.",
+      "reason": "Show contact email."
+    }
+  ]
+}

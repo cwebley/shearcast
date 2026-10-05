@@ -1,0 +1,39 @@
+{
+  "video_id": "o1NgBJ9r_H0",
+  "channel": "klatt",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 367,
+      "end": 372,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "I'll just throw this out there and more on tomorrow's show when we do the picks and previews.",
+      "last_line": "I'll just throw this out there and more on tomorrow's show when we do the picks and previews.",
+      "reason": "Brief inline teaser for tomorrow's episode, embedded in content.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 1040,
+      "end": 1052,
+      "confidence": "medium",
+      "borderline": false,
+      "first_line": "I can't wait for tomorrow's episode.",
+      "last_line": "You've got to make sure you come back because we've got a ton of huge games and these are the games that are going to send us on a trajectory to what our playoff ultimately will be.",
+      "reason": "Mid-episode teaser for tomorrow's picks and previews episode.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 1747,
+      "end": 1783,
+      "confidence": "high",
+      "borderline": false,
+      "first_line": "We've got a huge weekend of games for you tomorrow.",
+      "last_line": "I break those games down tomorrow right here on the Joel Clatt Show. Subscribe to the show.",
+      "reason": "Closing teaser for tomorrow's picks and previews episode; the subscribe/follow asks after it are promo.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

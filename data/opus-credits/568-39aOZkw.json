@@ -1,0 +1,17 @@
+{
+  "video_id": "568-39aOZkw",
+  "channel": "spacetime",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 31,
+      "end": 49,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "Hey everyone, before we get started, we wanted to let you know that we're experimenting with YouTube shorts starting next week.",
+      "last_line": "We hope you watch and enjoy.",
+      "reason": "Channel announcement about upcoming Shorts content; could be read as self-promotion rather than credits.",
+      "excluded": "channel announcement, not credits; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}

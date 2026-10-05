@@ -1,0 +1,8 @@
+{"video_id": "ZWA9h334GoQ", "channel": "vergecast", "segments": [
+  {"category": "credits", "start": 1866, "end": 1875, "confidence": "high",
+   "borderline": false, "first_line": "Uh this has been the Vergecast.", "last_line": "Call the hotline [music] 866-VERGE11 or email vergecast@theverge. com.",
+   "reason": "Show identification plus hotline and email contact info, ending where the subscribe promo begins."},
+  {"category": "credits", "start": 1879, "end": 1891, "confidence": "high",
+   "borderline": false, "first_line": "We're part of the Vox Media Podcast Network.", "last_line": "The Vergecast is produced by Josh Cahass, Eric Gomez, Brandon Keifer, and Travis Larchuk. See you next time. Rock and roll.",
+   "reason": "Network identification and production credits running to the end of the video (the sign-off shares the final caption line)."}
+]}

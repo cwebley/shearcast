@@ -1,0 +1,8 @@
+{"video_id": "UNa7GqyvVug", "channel": "vergecast", "segments": [
+  {"category": "credits", "start": 1709, "end": 1718, "confidence": "high",
+   "borderline": false, "first_line": "Well, keep sending us your questions.", "last_line": "You can call the hotline 866-VERGE11. Uh and you know what?",
+   "reason": "Contact info for the show: email address and hotline number, followed by a review ask."},
+  {"category": "credits", "start": 1735, "end": 1747, "confidence": "high",
+   "borderline": false, "first_line": "[music] >> The Vergecast is part of the Vox Media Podcast Network.", "last_line": "We are produced by the best team in podcasting, Josh Cahahas, Eric Gomez, Brandon Kiefer, and there's also me. Later.",
+   "reason": "Network identification and production credit roll running to the end of the video."}
+]}

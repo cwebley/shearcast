@@ -1,0 +1,4 @@
+{"video_id": "4t8RhKbkb70", "channel": "decoder", "segments": [
+  {"category": "credits", "start": 4586, "end": 4595, "confidence": "high", "borderline": false, "first_line": "If you'd like to let us know what you thought about this episode or really anything else at all, let us know.", "last_line": "We really do read all the emails or hit [music] me up directly on threads or blue sky.", "reason": "Contact info: invites feedback, gives the show email address and says they read every email."},
+  {"category": "credits", "start": 4603, "end": 4607, "confidence": "high", "borderline": false, "first_line": "Dakota is a production of the verge and part of the box media podcast network. We'll see you next time.", "last_line": "Dakota is a production of the verge and part of the box media podcast network. We'll see you next time.", "reason": "Network identification (production of The Verge, Vox Media Podcast Network) running to the end of the video."}
+]}

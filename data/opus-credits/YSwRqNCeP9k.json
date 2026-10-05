@@ -1,0 +1,50 @@
+{
+  "video_id": "YSwRqNCeP9k",
+  "channel": "spacetime",
+  "segments": [
+    {
+      "category": "credits",
+      "start": 3594,
+      "end": 3598,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "We'll get back to these in an upcoming episode of Spacetime.",
+      "last_line": "We'll get back to these in an upcoming episode of Spacetime.",
+      "reason": "Standalone teaser for an upcoming Spacetime episode closing the entanglement segment of this compilation; could also be read as the show's customary sign-off.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 5659,
+      "end": 5668,
+      "confidence": "low",
+      "borderline": true,
+      "first_line": "And that's a quantum rabbit hole that we'll jump into very soon right here on Spacetime.",
+      "last_line": "And that's a quantum rabbit hole that we'll jump into very soon right here on Spacetime.",
+      "reason": "Teaser for future episodes closing the Dirac segment; overlaps with the show's '...of spacetime' sign-off style.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 7654,
+      "end": 7659,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "Well, you're going to have to wait for an upcoming episode for that one.",
+      "last_line": "Well, you're going to have to wait for an upcoming episode for that one.",
+      "reason": "Explicit teaser for an upcoming episode, immediately followed by a plug for another channel (promo).",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    },
+    {
+      "category": "credits",
+      "start": 7689,
+      "end": 7734,
+      "confidence": "medium",
+      "borderline": true,
+      "first_line": "And in case you don't believe me yet, we'll finalize the debunking in an upcoming spaceime.",
+      "last_line": "And in case you don't believe me yet, we'll finalize the debunking in an upcoming spaceime.",
+      "reason": "Closing teaser for an upcoming episode that runs to the end of the video, though it doubles as the sign-off line.",
+      "excluded": "teaser; outside the narrowed credits definition (2026-09-28)"
+    }
+  ]
+}
