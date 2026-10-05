@@ -170,6 +170,48 @@ func InspectUploads(ctx context.Context, channelURL string, limit int) ([]Video,
 	return list(ctx, channelURL, limit, []string{"--ignore-config", "--no-cache-dir"})
 }
 
+// ChannelArtwork returns the full-size avatar of the channel behind a channel
+// or playlist URL: the show's own logo, unlike any one upload's thumbnail. A
+// playlist carries no avatar of its own, so its owning channel is looked up.
+func ChannelArtwork(ctx context.Context, sourceURL string) (string, error) {
+	avatar, owner, err := channelListing(ctx, sourceURL)
+	if err == nil && avatar == "" && owner != "" && owner != sourceURL {
+		avatar, _, err = channelListing(ctx, owner)
+	}
+	if err != nil {
+		return "", err
+	}
+	if avatar == "" {
+		return "", fmt.Errorf("no channel avatar found for %s", sourceURL)
+	}
+	return avatar, nil
+}
+
+// channelListing reads a listing's own metadata, without any entries: its
+// avatar, if it has one, and the URL of the channel that owns it.
+func channelListing(ctx context.Context, url string) (avatar, owner string, err error) {
+	out, err := run(ctx, "--no-warnings", "--flat-playlist", "--playlist-items", "0", "--dump-single-json", url)
+	if err != nil {
+		return "", "", err
+	}
+	var listing struct {
+		ChannelURL string `json:"channel_url"`
+		Thumbnails []struct {
+			ID  string `json:"id"`
+			URL string `json:"url"`
+		} `json:"thumbnails"`
+	}
+	if err := json.Unmarshal(out, &listing); err != nil {
+		return "", "", fmt.Errorf("parsing yt-dlp channel metadata: %w", err)
+	}
+	for _, t := range listing.Thumbnails {
+		if t.ID == "avatar_uncropped" {
+			avatar = t.URL
+		}
+	}
+	return avatar, listing.ChannelURL, nil
+}
+
 // listSlack is how many skipped uploads a listing can step past. Flat listing
 // fetches whole pages, so the extra entries cost little.
 const listSlack = 10

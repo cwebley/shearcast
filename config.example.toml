@@ -59,6 +59,9 @@ listen = "127.0.0.1:8080"
 
 # Each channel becomes its own podcast feed at <slug>/feed.xml in the publishing
 # directory or R2 bucket. "rules" selects rule ids; empty means all of them.
+# Show artwork is the YouTube channel's avatar, refreshed on each sync. Set
+# "image" to a URL to use other artwork, such as the show's own podcast cover
+# when the source is a playlist on a network's channel.
 [[channels]]
 name = "History of the Universe"
 url = "https://www.youtube.com/@historyoftheuniverse"
@@ -89,6 +92,7 @@ name = "Slate Political Gabfest"
 url = "https://www.youtube.com/@Slate"
 slug = "gabfest"
 title = "Slate Political Gabfest (sheared)"
+image = "https://example.com/gabfest-cover.jpg" # else the shared Slate logo
 description = "Sheared episodes, for commute listening."
 latest = 5
 keep = 10

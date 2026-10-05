@@ -69,6 +69,7 @@ type Channel struct {
 	Title       string   `toml:"title"`       // feed title; defaults to Name
 	Description string   `toml:"description"` // feed description; defaults to Name
 	Category    string   `toml:"category"`    // itunes:category; defaults to "Technology"
+	Image       string   `toml:"image"`       // show artwork URL; empty uses the YouTube channel's avatar
 	Rules       []string `toml:"rules"`       // rule ids; empty means all
 	WatchLimit  int      `toml:"watch_limit"` // legacy alias for latest
 	Latest      int      `toml:"latest"`

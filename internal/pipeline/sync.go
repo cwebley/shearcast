@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	"github.com/cwebley/shearcast/internal/config"
+	"github.com/cwebley/shearcast/internal/feed"
 	"github.com/cwebley/shearcast/internal/state"
+	"github.com/cwebley/shearcast/internal/storage"
 	"github.com/cwebley/shearcast/internal/usage"
 	"github.com/cwebley/shearcast/internal/youtube"
 )
@@ -72,6 +74,51 @@ func abandonedAttempt(ep state.Episode) bool {
 		ep.PendingPublication == nil && ep.AudioSHA256 == "" && ep.RecordPath == "" && ep.Usage == nil && len(ep.AudioKeys) == 0
 }
 
+// withArtwork fills in the channel's show artwork from its source when config
+// names none. A failed lookup only costs freshness: the feed keeps whatever
+// artwork it already has.
+func (r *Runner) withArtwork(ctx context.Context, ch config.Channel) config.Channel {
+	if ch.Image != "" || r.ChannelArtwork == nil || ch.URL == "" {
+		return ch
+	}
+	image, err := r.ChannelArtwork(ctx, ch.URL)
+	if err != nil {
+		if r.Progress != nil {
+			r.Progress(fmt.Sprintf("%s: keeping existing show artwork: %v", ch.Slug, err))
+		}
+		return ch
+	}
+	ch.Image = image
+	return ch
+}
+
+// refreshArtwork rewrites an existing feed whose show artwork differs from the
+// channel's, so new artwork appears without waiting for a new episode.
+func (r *Runner) refreshArtwork(ctx context.Context, ch config.Channel) error {
+	if ch.Image == "" {
+		return nil
+	}
+	data, err := r.Publisher.Get(ctx, ch.Slug+"/feed.xml")
+	if errors.Is(err, storage.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	current, err := feed.Parse(data)
+	if err != nil {
+		return err
+	}
+	if current.ImageURL == ch.Image {
+		return nil
+	}
+	fd, err := loadOrCreateFeed(ctx, r.Publisher, ch, ch.Slug+"/feed.xml")
+	if err != nil {
+		return err
+	}
+	return putFeed(ctx, r.Publisher, ch, fd)
+}
+
 // SyncChannel retries verified publication independently of source availability,
 // then processes only the bounded upload window. Every episode is sequential.
 func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []EpisodeOutcome, runErr error) {
@@ -91,6 +138,10 @@ func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []E
 	}
 	if ch.Disabled || purging {
 		return nil, nil
+	}
+	ch = r.withArtwork(ctx, ch)
+	if err := r.refreshArtwork(ctx, ch); err != nil {
+		return nil, fmt.Errorf("updating show artwork: %w", err)
 	}
 	if err := r.EnforceRetention(ctx, ch); err != nil && !errors.Is(err, ErrSourceOrder) {
 		return nil, fmt.Errorf("retention: %w", err)

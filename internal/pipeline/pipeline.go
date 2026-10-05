@@ -354,10 +354,9 @@ func publishEpisode(ctx context.Context, store Publisher, channel config.Channel
 	if err != nil {
 		return nil, err
 	}
-	// The channel has no config-driven artwork source, so it's bootstrapped
-	// from whichever episode happens to be first published and left alone
-	// after that -- a show's icon should stay stable, not flip to match
-	// whatever was most recently published.
+	// Only when neither config nor the channel's avatar supplied artwork does
+	// a feed borrow its first episode's thumbnail, and it keeps that one: a
+	// show's icon should stay stable, not flip with each new episode.
 	if fd.ImageURL == "" {
 		fd.ImageURL = video.Thumbnail
 	}
@@ -409,9 +408,10 @@ func publishEpisode(ctx context.Context, store Publisher, channel config.Channel
 // Title, Description, Category and SelfURL are always overwritten from the
 // current config and store, whether or not a feed already existed: they are
 // fully config-determined, so an edit to config.toml takes effect on the
-// next publish rather than requiring the feed to be deleted first. Items and
-// ImageURL are the opposite -- there's no config source for them, so
-// whatever Parse recovered is left alone and only added to.
+// next publish rather than requiring the feed to be deleted first. ImageURL
+// is overwritten too when the channel has an image, set in config or found
+// by sync. Items have no config source, so whatever Parse recovered is left
+// alone and only added to.
 func loadOrCreateFeed(ctx context.Context, store Publisher, channel config.Channel, feedKey string) (*feed.Feed, error) {
 	fd := &feed.Feed{}
 	data, err := store.Get(ctx, feedKey)
@@ -430,6 +430,9 @@ func loadOrCreateFeed(ctx context.Context, store Publisher, channel config.Chann
 	fd.Description = channel.FeedDescription()
 	fd.Category = channel.FeedCategory()
 	fd.SelfURL = store.PublicURL(feedKey)
+	if channel.Image != "" {
+		fd.ImageURL = channel.Image
+	}
 	return fd, nil
 }
 

@@ -77,3 +77,21 @@ for a in "$@"; do [ "$prev" = "-o" ] && touch "$a"; prev="$a"; done
 		t.Fatal(err)
 	}
 }
+
+func TestChannelArtworkFollowsAPlaylistToItsChannel(t *testing.T) {
+	log := recordArgs(t, `case "$*" in
+*playlist?list=*) echo '{"channel_url":"https://www.youtube.com/channel/UCx","thumbnails":[{"id":"0","url":"https://i.ytimg.com/pl.jpg"}]}' ;;
+*) echo '{"channel_url":"https://www.youtube.com/channel/UCx","thumbnails":[{"id":"banner_uncropped","url":"https://yt3/banner"},{"id":"avatar_uncropped","url":"https://yt3/avatar=s0"}]}' ;;
+esac`)
+	got, err := ChannelArtwork(context.Background(), "https://www.youtube.com/playlist?list=PLabc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "https://yt3/avatar=s0" {
+		t.Fatalf("artwork: %q", got)
+	}
+	args, _ := os.ReadFile(log)
+	if calls := strings.Split(strings.TrimSpace(string(args)), "\n"); len(calls) != 2 || !strings.HasSuffix(calls[1], " https://www.youtube.com/channel/UCx") {
+		t.Fatalf("calls: %q", calls)
+	}
+}

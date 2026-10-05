@@ -58,8 +58,11 @@ type Runner struct {
 	NewClient   func() (*jev.Client, error)
 	Progress    Progress
 	ListUploads func(context.Context, string, int) ([]youtube.Video, error)
-	uploadOrder map[string]int // source listing position of each upload in this channel's window, skipped ones included
-	Usage       usage.Summary  // observations from this runner invocation, including failures
+	// ChannelArtwork finds a channel's show artwork when config names none.
+	// Nil leaves the feed's existing artwork alone.
+	ChannelArtwork func(context.Context, string) (string, error)
+	uploadOrder    map[string]int // source listing position of each upload in this channel's window, skipped ones included
+	Usage          usage.Summary  // observations from this runner invocation, including failures
 }
 
 // episodeProgress prefixes Runner.Progress messages with the channel and

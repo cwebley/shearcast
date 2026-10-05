@@ -60,7 +60,8 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 
 	cache := youtube.Cache{Dir: *cacheDir}
 	runner := pipeline.Runner{Config: cfg, Cache: cache, State: st,
-		NewClient: func() (*jev.Client, error) { return newJevClient(cfg) },
+		NewClient:      func() (*jev.Client, error) { return newJevClient(cfg) },
+		ChannelArtwork: youtube.ChannelArtwork,
 	}
 	if !*dryRun {
 		runner.Progress = func(msg string) {
