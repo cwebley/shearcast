@@ -2,9 +2,8 @@
 
 Start here if you're picking up ad-detection accuracy work. This covers what
 we're trying to fix, what changed in the last session, what the measurements
-said, and what's still broken. Nothing from that session is committed. The
-user asked to hold commits, so every change below is sitting in the working
-tree.
+said, and what's still broken. Everything below is committed on the
+`experiment/detection-evaluation` branch.
 
 ## The goal
 
