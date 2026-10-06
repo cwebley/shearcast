@@ -113,8 +113,11 @@ shearcast render <video-url-or-id> -channel hotu
 # upload an already-rendered episode and update its channel's feed
 shearcast publish <video-url-or-id> -channel hotu
 
-# retry pending publication, refresh metadata, and process selected new uploads
+# retry pending work and process selected new uploads
 shearcast sync
+
+# explicitly refresh existing episode metadata and channel artwork too
+shearcast sync -refresh-metadata
 
 # same, but scoped to one channel (useful for a per-channel cron schedule)
 shearcast sync -channel gabfest
@@ -143,16 +146,36 @@ shearcast transcript <video-url-or-id> -ad-start 120 -ad-end 180
 Run `sync` periodically with the OS scheduler, such as `launchd` on macOS or a
 `systemd` timer on Linux. Each run recovers interrupted work, retries unfinished
 publication, checks the newest `latest` uploads and exits. The default
-selection is five. Episodes run sequentially.
+selection is five. Up to four channels run concurrently; episodes within each
+channel stay sequential so its feed has one writer. The defaults allow two
+yt-dlp operations and one AAC encode at a time across the run. `[jev].parallel`
+also caps model requests across all workers. Tune the worker and resource limits
+with `-jobs`, `-youtube-jobs` and `-encode-jobs`; all must be positive. Use
+`-jobs 1` for sequential channel processing.
+
+Progress reports elapsed time for discovery, metadata, captions, detection,
+snapping, encoding and publication, plus each channel and the whole run. Stage
+times include waiting for shared resources. Unchanged episodes are counted in
+the channel summary instead of printing repeated zero-usage lines.
 
 New renders fetch and validate captions first, then download source audio and
 check that FFprobe reports a positive duration. Jev detection starts only after
 both inputs are ready. Missing captions wait without downloading audio; caption,
 audio-download and source-probe failures make no model requests.
 
-For selected episodes already published, sync refreshes source titles,
-descriptions and artwork plus channel feed metadata. It preserves GUIDs,
-enclosures and edited durations. These updates fetch metadata only.
+For selected episodes already published, normal sync reuses saved metadata and
+artwork. A changed title in the upload listing triggers a metadata refresh for
+that episode. `sync -refresh-metadata` refreshes every selected published
+episode's source title, description, artwork and supported chapters, plus show
+artwork. There is no automatic refresh interval. These updates preserve GUIDs,
+enclosures and edited durations and fetch no captions or source audio for
+published episodes. Pending work still retries normally with either invocation.
+Local feed-setting edits apply on ordinary sync without a source refresh.
+
+Each channel's feed is fetched once per invocation and reused by recovery,
+retention and episode updates. Unchanged feeds, published chapter revisions,
+and subscription documents are not uploaded again. Failed feed writes invalidate
+the cached snapshot so recovery checks the actual remote outcome.
 New publications also include source chapters adjusted to the edited audio.
 See [source chapters](docs/source-chapters.md) for format support and refresh behavior.
 
@@ -362,7 +385,10 @@ Metadata and captions live under `<cache>/<id>/`. Rendered audio and records
 start under `<cache>/renders/<channel>/<id>/`. After filesystem publication,
 managed audio lives at `<publishing.directory>/<channel>/<id>.m4a` and the
 processing record stays in the private cache. The default cache root on macOS is
-`~/Library/Caches/shearcast/`; override it with `-cache`. Source audio is temporary
+`~/Library/Caches/shearcast/`; override it with `-cache`. Source audio downloads
+use `<cache>/sources/<channel>/<id>/audio.m4a`, keeping concurrent channels'
+working files separate while metadata and captions stay shared. Older cached
+downloads are reused when available. Source audio is temporary
 working data and is removed after the render checkpoint is saved, before
 publication. A later explicit rerender may download the source again. Finished
 audio stays locally until retention or manual removal; small records survive

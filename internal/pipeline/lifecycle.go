@@ -9,6 +9,7 @@ import (
 	"os"
 	"slices"
 	"sort"
+	"time"
 
 	"github.com/cwebley/shearcast/internal/config"
 	"github.com/cwebley/shearcast/internal/fileutil"
@@ -61,8 +62,11 @@ type Runner struct {
 	// ChannelArtwork finds a channel's show artwork when config names none.
 	// Nil leaves the feed's existing artwork alone.
 	ChannelArtwork func(context.Context, string) (string, error)
-	uploadOrder    map[string]int // source listing position of each upload in this channel's window, skipped ones included
-	Usage          usage.Summary  // observations from this runner invocation, including failures
+	// RefreshMetadata opts into refreshing existing episodes and show artwork.
+	RefreshMetadata bool
+	OnOutcome       func(EpisodeOutcome)
+	uploadOrder     map[string]int // source listing position of each upload in this channel's window, skipped ones included
+	Usage           usage.Summary  // observations from this runner invocation, including failures
 }
 
 // episodeProgress prefixes Runner.Progress messages with the channel and
@@ -78,6 +82,19 @@ func (r *Runner) episodeProgress(channel, id string) Progress {
 func (p Progress) say(msg string) {
 	if p != nil {
 		p(msg)
+	}
+}
+
+// start reports elapsed wall time, including any wait for a shared resource.
+func (p Progress) start(label string) func(error) {
+	p.say(label + "...")
+	start := time.Now()
+	return func(err error) {
+		status := "finished"
+		if err != nil {
+			status = "failed"
+		}
+		p.say(fmt.Sprintf("%s %s in %s", label, status, time.Since(start).Round(time.Millisecond)))
 	}
 }
 
@@ -195,6 +212,8 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 		}
 	}
 	if req.Action == Sync && episode.HasPublished && !episode.PublishPending {
+		refreshed := r.episodeProgress(req.Channel.Slug, id).start("refreshing metadata and feed")
+		defer func() { refreshed(err) }()
 		video, err := source.RefreshInfo(ctx, req.Target)
 		if err != nil {
 			return episode, fmt.Errorf("refreshing metadata: %w", err)
@@ -271,6 +290,7 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 		}
 	}
 	if !ready {
+		loaded := r.episodeProgress(req.Channel.Slug, id).start("loading source metadata")
 		var video *youtube.Video
 		var loadErr error
 		_, dated := sourceDate(episode.Video)
@@ -279,6 +299,7 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 		} else {
 			video, loadErr = source.Info(ctx, req.Target)
 		}
+		loaded(loadErr)
 		if loadErr != nil {
 			return episode, fmt.Errorf("loading metadata: %w", loadErr)
 		}
@@ -304,8 +325,9 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 		if err := save(); err != nil {
 			return episode, err
 		}
-		r.episodeProgress(req.Channel.Slug, id).say("fetching captions...")
+		captioned := r.episodeProgress(req.Channel.Slug, id).start("fetching captions")
 		cues, err := source.Cues(ctx, video)
+		captioned(err)
 		if errors.Is(err, youtube.ErrCaptionsUnavailable) {
 			if episode.Stage != state.Published {
 				episode.Stage = state.Waiting
@@ -381,6 +403,8 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 	if err != nil {
 		return episode, err
 	}
+	published := r.episodeProgress(req.Channel.Slug, id).start("uploading chapters, audio and updating the feed")
+	defer func() { published(err) }()
 	metadata, err := r.prepareChapters(ctx, req.Channel, episode.Video, timeline, &episode)
 	if err != nil {
 		return episode, err
@@ -404,7 +428,6 @@ func (r *Runner) Run(ctx context.Context, req EpisodeRequest) (episode state.Epi
 	if err := save(); err != nil {
 		return episode, err
 	}
-	r.episodeProgress(req.Channel.Slug, id).say("uploading audio and updating the feed...")
 	result, err := publishEpisode(ctx, r.Publisher, req.Channel, episode.Video, path, r.uploadOrder, metadata, audioKey)
 	if err != nil {
 		return episode, err
@@ -447,12 +470,14 @@ func sameFile(a, b string) bool {
 }
 
 func (r *Runner) prepareArtifact(path, id string) error {
-	sourcePath, err := fileutil.CanonicalPath(r.Cache.SourceAudioPath(id))
-	if err != nil {
-		return err
-	}
-	if sameFile(path, sourcePath) {
-		return fmt.Errorf("rendered output must be separate from cached source audio")
+	for _, source := range r.Cache.SourceAudioPaths(id) {
+		sourcePath, err := fileutil.CanonicalPath(source)
+		if err != nil {
+			return err
+		}
+		if sameFile(path, sourcePath) {
+			return fmt.Errorf("rendered output must be separate from cached source audio")
+		}
 	}
 	if err := r.Cache.CleanupWorking(id); err != nil {
 		return err

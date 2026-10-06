@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cwebley/shearcast/internal/worklimit"
 )
 
 // Binary is the ffmpeg executable; override for tests or a pinned install.
@@ -189,6 +191,11 @@ func Cut(ctx context.Context, audioPath string, keep []Range, outPath string, op
 	if err := ValidateBitrate(opts.BitrateKbps); err != nil {
 		return err
 	}
+	release, err := worklimit.Acquire(ctx, worklimit.Encode)
+	if err != nil {
+		return err
+	}
+	defer release()
 
 	args := []string{"-nostdin", "-y"}
 	var filter strings.Builder

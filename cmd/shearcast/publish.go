@@ -49,7 +49,7 @@ func runPublish(ctx context.Context, args []string) error {
 		return err
 	}
 
-	runner := pipeline.Runner{Config: cfg, Cache: youtube.Cache{Dir: *cacheDir}, State: st, Publisher: store}
+	runner := pipeline.Runner{Config: cfg, Cache: (youtube.Cache{Dir: *cacheDir}).ForChannel(channel.Slug), State: st, Publisher: store}
 	defer func() { printUsage(os.Stderr, "model usage this run", &runner.Usage) }()
 	episode, err := runner.Run(ctx, pipeline.EpisodeRequest{Action: pipeline.Publish, Channel: channel, Target: positional[0], AudioPath: *audioPath})
 	if err != nil {

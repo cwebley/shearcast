@@ -177,6 +177,19 @@ The examples below use hourly sync. A sleeping/offline host, delayed captions
 or a failed run can delay a new episode. Overlapping writers report a state
 lock error rather than running together.
 
+Normal sync discovers new uploads and retries pending captions, renders and
+publication. Existing source metadata and show artwork are kept; a changed title
+in the upload listing triggers an episode refresh. There is no timed metadata
+refresh. To refresh existing metadata deliberately, run `shearcast sync
+-refresh-metadata` with the same paths. That invocation also performs ordinary
+sync work, so a daily refresh job can replace one of the day's regular syncs.
+
+Sync runs up to four channel workers, with two yt-dlp operations and one AAC
+encode at a time across the invocation. `-jobs`, `-youtube-jobs` and
+`-encode-jobs` adjust those limits. `[jev].parallel` is the shared model-request
+limit. Use `-jobs 1` for sequential channels. Progress includes per-stage,
+per-channel and total elapsed times.
+
 ### Linux systemd
 
 Install the following units under `/etc/systemd/system/`. Adjust the user,

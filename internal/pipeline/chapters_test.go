@@ -406,7 +406,7 @@ func TestRecoveryAdoptsTimelineAfterLostFeedResponse(t *testing.T) {
 	}
 	path := filepath.Join(t.TempDir(), "replacement.m4a")
 	stageChapterCut(t, f, path)
-	f.runner.Publisher = &lostFeedResponse{Publisher: f.store}
+	f.runner.Publisher = NewSyncPublisher(&lostFeedResponse{Publisher: f.store})
 	req := request(Publish)
 	req.AudioPath = path
 	ep, err := f.runner.Run(ctx, req)

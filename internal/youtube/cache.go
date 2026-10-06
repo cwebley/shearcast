@@ -22,6 +22,15 @@ import (
 // every video, and a batch that trips the limit loses videos partway through.
 type Cache struct {
 	Dir string
+	// AudioDir isolates temporary source audio for concurrent channel workers.
+	// Metadata and captions remain shared under Dir. Empty uses the legacy path.
+	AudioDir string
+}
+
+// ForChannel keeps source downloads private while sharing small cached inputs.
+func (c Cache) ForChannel(slug string) Cache {
+	c.AudioDir = filepath.Join(c.Dir, "sources", slug)
+	return c
 }
 
 // DefaultCacheDir is the user's cache directory (~/Library/Caches/shearcast on
@@ -77,30 +86,53 @@ func (c Cache) Cues(ctx context.Context, v *Video) ([]transcript.Cue, error) {
 
 // RemoveAudio removes only the cached source, leaving metadata and captions.
 func (c Cache) RemoveAudio(id string) error {
-	err := os.Remove(c.SourceAudioPath(id))
-	if os.IsNotExist(err) {
-		return nil
+	for _, path := range c.SourceAudioPaths(id) {
+		err := os.Remove(path)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if err := fileutil.SyncDir(filepath.Dir(path)); err != nil {
+			return err
+		}
 	}
-	if err != nil {
-		return err
-	}
-	return fileutil.SyncDir(c.videoDir(id))
+	return nil
 }
 
 func (c Cache) SourceAudioPath(id string) string {
-	return filepath.Join(c.videoDir(id), "audio.m4a")
+	if c.AudioDir != "" {
+		return filepath.Join(c.AudioDir, id, "audio.m4a")
+	}
+	return c.legacyAudioPath(id)
 }
+
+// SourceAudioPaths includes legacy working audio during layout migration.
+// Neither location is suitable for a rendered output.
+func (c Cache) SourceAudioPaths(id string) []string {
+	paths := []string{c.SourceAudioPath(id)}
+	if c.AudioDir != "" {
+		paths = append(paths, c.legacyAudioPath(id))
+	}
+	return paths
+}
+
+func (c Cache) legacyAudioPath(id string) string { return filepath.Join(c.videoDir(id), "audio.m4a") }
 
 // CleanupWorking reclaims abandoned source downloads under the command lock.
 // Completed audio, metadata and captions are left intact.
 func (c Cache) CleanupWorking(id string) error {
-	paths, err := filepath.Glob(filepath.Join(c.videoDir(id), ".download-*"))
-	if err != nil {
-		return err
-	}
-	for _, path := range paths {
-		if err := os.RemoveAll(path); err != nil {
+	for _, source := range c.SourceAudioPaths(id) {
+		dir := filepath.Dir(source)
+		paths, err := filepath.Glob(filepath.Join(dir, ".download-*"))
+		if err != nil {
 			return err
+		}
+		for _, path := range paths {
+			if err := os.RemoveAll(path); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -122,6 +154,23 @@ func (c Cache) Audio(ctx context.Context, v *Video, progress func(string)) (stri
 	path := c.SourceAudioPath(v.ID)
 	if _, err := os.Stat(path); err == nil {
 		return path, nil
+	}
+	if c.AudioDir != "" {
+		// An interrupted older sync may have a completed source download in the
+		// shared cache. Move it into this worker's private workspace. A sibling
+		// can lose the rename race and download its own copy, but never reads or
+		// deletes another worker's in-use source audio.
+		legacy := c.legacyAudioPath(v.ID)
+		if _, err := os.Stat(legacy); err == nil {
+			if err := fileutil.MkdirAll(filepath.Dir(path)); err != nil {
+				return "", err
+			}
+			if err := os.Rename(legacy, path); err == nil {
+				return path, nil
+			} else if !os.IsNotExist(err) {
+				return "", err
+			}
+		}
 	}
 	if err := DownloadAudio(ctx, v.URL(), path, progress); err != nil {
 		return "", err

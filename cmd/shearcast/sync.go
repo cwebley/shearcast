@@ -6,13 +6,18 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
+	"sync"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/cwebley/shearcast/internal/config"
 	"github.com/cwebley/shearcast/internal/jev"
 	"github.com/cwebley/shearcast/internal/pipeline"
 	"github.com/cwebley/shearcast/internal/state"
 	modelusage "github.com/cwebley/shearcast/internal/usage"
+	"github.com/cwebley/shearcast/internal/worklimit"
 	"github.com/cwebley/shearcast/internal/youtube"
 )
 
@@ -26,6 +31,10 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 	channelSlug := fs.String("channel", "", "only sync this channel slug (default: every configured channel)")
 	statePath := fs.String("state", config.DefaultStatePath(), "path to the processed-episode record")
 	dryRun := fs.Bool("dry-run", false, "plan selection, model cost and storage without processing or publishing")
+	refreshMetadata := fs.Bool("refresh-metadata", false, "also refresh existing episode metadata and channel artwork")
+	jobs := fs.Int("jobs", 4, "maximum concurrent channel workers")
+	youtubeJobs := fs.Int("youtube-jobs", 2, "maximum concurrent yt-dlp operations across all channels")
+	encodeJobs := fs.Int("encode-jobs", 1, "maximum concurrent audio encodes across all channels")
 	cacheDir := cacheFlag(fs)
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -36,6 +45,13 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 	if fs.NArg() != 0 {
 		return fmt.Errorf("sync takes no positional arguments")
 	}
+	if *jobs < 1 {
+		return fmt.Errorf("jobs must be positive")
+	}
+	if *youtubeJobs < 1 || *encodeJobs < 1 {
+		return fmt.Errorf("youtube-jobs and encode-jobs must be positive")
+	}
+	started := time.Now()
 
 	cfg, err := loadCommandConfig(*cfgPath, *statePath, *cacheDir)
 	if err != nil {
@@ -49,7 +65,7 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 	if len(cfg.Channels) == 0 {
 		return fmt.Errorf("no channels configured in %s", *cfgPath)
 	}
-	channels := cfg.Channels
+	channels := slices.Clone(cfg.Channels)
 	if *channelSlug != "" {
 		ch, err := requireChannel(cfg, *channelSlug)
 		if err != nil {
@@ -60,11 +76,16 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 
 	cache := youtube.Cache{Dir: *cacheDir}
 	runner := pipeline.Runner{Config: cfg, Cache: cache, State: st,
-		NewClient:      func() (*jev.Client, error) { return newJevClient(cfg) },
-		ChannelArtwork: youtube.ChannelArtwork,
+		NewClient:       func() (*jev.Client, error) { return newJevClient(cfg) },
+		ChannelArtwork:  youtube.ChannelArtwork,
+		RefreshMetadata: *refreshMetadata,
 	}
+	var outputMu sync.Mutex
+	var totalUsage modelusage.Summary
 	if !*dryRun {
 		runner.Progress = func(msg string) {
+			outputMu.Lock()
+			defer outputMu.Unlock()
 			fmt.Fprintf(os.Stderr, "%s %s\n", time.Now().Format("15:04:05"), msg)
 		}
 	}
@@ -78,21 +99,29 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 		}
 		defer func() {
 			runErr = errors.Join(runErr, st.FinishSync(runErr))
-			printUsage(os.Stderr, "model usage this run", &runner.Usage)
+			printUsage(os.Stderr, "model usage this run", &totalUsage)
+			status := "complete"
+			if runErr != nil {
+				status = "failed"
+			}
+			fmt.Fprintf(os.Stderr, "sync: %s in %s\n", status, time.Since(started).Round(time.Millisecond))
 		}()
 	}
 	store, err := newPublisher(ctx, cfg, st, *dryRun)
 	if err != nil {
 		return err
 	}
+	if !*dryRun {
+		store = pipeline.NewSyncPublisher(store)
+	}
 	runner.Publisher = store
 
 	var failures int
-	for _, channel := range channels {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		if *dryRun {
+	if *dryRun {
+		for _, channel := range channels {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			plan, err := runner.Plan(ctx, channel)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s: planning: %v\n", channel.Slug, err)
@@ -100,8 +129,17 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 				continue
 			}
 			printSyncPlan(channel, plan)
-			continue
 		}
+		if failures > 0 {
+			return fmt.Errorf("%d channel(s) failed; see above", failures)
+		}
+		return nil
+	}
+	ctx, cancel := worklimit.With(ctx, *youtubeJobs, cfg.Jev.Parallel, *encodeJobs)
+	defer cancel()
+	// Recover edits to the shared config file before starting independent workers.
+	blocked := make(map[string]bool)
+	for i, channel := range channels {
 		if st.PurgePending(channel.Slug) && !channel.Disabled {
 			if err := stopChannel(*cfgPath, channel.Slug, st, true); err != nil {
 				if recordErr := st.StartChannelSync(channel.Slug); recordErr != nil {
@@ -112,48 +150,91 @@ func runSync(ctx context.Context, args []string) (runErr error) {
 				}
 				fmt.Fprintf(os.Stderr, "%s: recovering channel stop: %v\n", channel.Slug, err)
 				failures++
+				blocked[channel.Slug] = true
 				continue
 			}
-			channel.Disabled = true
+			channels[i].Disabled = true
 		}
-		outcomes, err := runner.SyncChannel(ctx, channel)
-		for _, outcome := range outcomes {
-			if outcome.Skipped != "" {
-				fmt.Fprintf(os.Stderr, "%s: %s: skipped (%s)\n", channel.Slug, outcome.ID, outcome.Skipped)
-				continue
-			}
-			printUsage(os.Stderr, channel.Slug+": "+outcome.ID+": model usage", &outcome.Usage)
-			if outcome.Error != nil {
-				continue
-			}
-			status := string(outcome.Episode.Stage)
-			if outcome.Episode.Removal != "" {
-				status = outcome.Episode.Removal
-			}
-			fmt.Fprintf(os.Stderr, "%s: %s: %s\n", channel.Slug, outcome.ID, status)
+	}
+	type channelResult struct {
+		usage modelusage.Summary
+		err   error
+	}
+	results := make([]channelResult, len(channels))
+	g, workerCtx := errgroup.WithContext(ctx)
+	g.SetLimit(*jobs)
+	for i, channel := range channels {
+		if blocked[channel.Slug] {
+			continue
 		}
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %v\n", channel.Slug, err)
+		g.Go(func() error {
+			if err := workerCtx.Err(); err != nil {
+				return err
+			}
+			worker := runner
+			// Two channels may select the same video with different rules. Their
+			// source cleanup must never remove audio another render still needs.
+			worker.Cache = cache.ForChannel(channel.Slug)
+			worker.OnOutcome = func(outcome pipeline.EpisodeOutcome) {
+				outputMu.Lock()
+				defer outputMu.Unlock()
+				printSyncOutcome(channel, outcome)
+			}
+			_, err := worker.SyncChannel(workerCtx, channel)
+			results[i] = channelResult{usage: worker.Usage, err: err}
+			if err != nil {
+				runner.Progress(fmt.Sprintf("%s: %v", channel.Slug, err))
+			}
 			if errors.Is(err, modelusage.ErrCheckpoint) {
 				return err
 			}
+			return nil // ordinary channel failures must not cancel other channels
+		})
+	}
+	workerErr := g.Wait()
+	for _, result := range results {
+		totalUsage = totalUsage.Add(result.usage)
+		if result.err != nil {
 			failures++
+		}
+		if errors.Is(result.err, modelusage.ErrCheckpoint) {
+			workerErr = errors.Join(workerErr, result.err)
 		}
 	}
-	if !*dryRun {
-		// Always from every configured channel, even on a scoped run: the page
-		// is one list, and a -channel sync must not shrink it to one show.
-		if pageURL, err := pipeline.PublishSubscriptions(ctx, store, cfg.Channels); err != nil {
-			fmt.Fprintf(os.Stderr, "subscription page: %v\n", err)
-			failures++
-		} else {
-			fmt.Fprintf(os.Stderr, "subscription page: %s\n", pageURL)
-		}
+	if workerErr != nil || ctx.Err() != nil {
+		return errors.Join(workerErr, ctx.Err())
+	}
+	// Always from every configured channel, even on a scoped run: the page
+	// is one list, and a -channel sync must not shrink it to one show.
+	pageStarted := time.Now()
+	runner.Progress("updating subscription page...")
+	if pageURL, err := pipeline.PublishSubscriptions(ctx, store, cfg.Channels); err != nil {
+		fmt.Fprintf(os.Stderr, "subscription page: %v\n", err)
+		failures++
+	} else {
+		fmt.Fprintf(os.Stderr, "subscription page: %s (checked in %s)\n", pageURL, time.Since(pageStarted).Round(time.Millisecond))
 	}
 	if failures > 0 {
 		return fmt.Errorf("%d channel(s) failed; see above", failures)
 	}
 	return nil
+}
+
+func printSyncOutcome(channel config.Channel, outcome pipeline.EpisodeOutcome) {
+	status := outcome.Status()
+	if status == "unchanged" {
+		return
+	} // summarized once per channel
+	if outcome.Usage.Attempts > 0 {
+		printUsage(os.Stderr, channel.Slug+": "+outcome.ID+": model usage", &outcome.Usage)
+	}
+	if status == "failed" {
+		return
+	} // channel error includes episode failures
+	if status == "skipped" {
+		status = "skipped (" + outcome.Skipped + ")"
+	}
+	fmt.Fprintf(os.Stderr, "%s: %s: %s in %s\n", channel.Slug, outcome.ID, status, outcome.Duration.Round(time.Millisecond))
 }
 
 func printSyncPlan(ch config.Channel, p *pipeline.SyncPlan) {

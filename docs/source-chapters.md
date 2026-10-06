@@ -10,6 +10,12 @@ This feature applies to new publications and explicit republishes. Metadata-only
 sync does not backfill older published entries. Use explicit reprocessing or
 publication to replace one when needed. No library reset is required.
 
+Normal sync keeps published chapter metadata as it is, unless a changed source
+title triggers an episode refresh. Run `shearcast sync -refresh-metadata`, with
+`-channel SLUG` if desired, to fetch chapter corrections explicitly. Repeated
+refreshes reuse chapter revisions already referenced by the live feed when
+their content hash is unchanged.
+
 ## Timing and descriptions
 
 Chapter starts use the final retained audio ranges after snapping, merging and

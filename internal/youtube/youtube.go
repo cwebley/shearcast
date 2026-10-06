@@ -22,6 +22,7 @@ import (
 
 	"github.com/cwebley/shearcast/internal/chapters"
 	"github.com/cwebley/shearcast/internal/fileutil"
+	"github.com/cwebley/shearcast/internal/worklimit"
 )
 
 // Binary is the yt-dlp executable; override for tests or a pinned install.
@@ -404,6 +405,11 @@ func downloadReporter(progress func(string)) func(string) {
 // runWithProgress runs yt-dlp, handing each stdout line carrying the progress
 // marker to onLine as it arrives. Stderr is kept for the error message.
 func runWithProgress(ctx context.Context, args []string, onLine func(string)) error {
+	release, err := worklimit.Acquire(ctx, worklimit.YouTube)
+	if err != nil {
+		return err
+	}
+	defer release()
 	cmd := exec.CommandContext(ctx, Binary, args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -436,6 +442,11 @@ func runWithProgress(ctx context.Context, args []string, onLine func(string)) er
 }
 
 func run(ctx context.Context, args ...string) ([]byte, error) {
+	release, err := worklimit.Acquire(ctx, worklimit.YouTube)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	cmd := exec.CommandContext(ctx, Binary, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

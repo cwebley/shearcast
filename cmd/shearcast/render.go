@@ -50,7 +50,7 @@ func runRender(ctx context.Context, args []string) error {
 		return err
 	}
 
-	runner := pipeline.Runner{Config: cfg, State: st, Cache: youtube.Cache{Dir: *cacheDir},
+	runner := pipeline.Runner{Config: cfg, State: st, Cache: (youtube.Cache{Dir: *cacheDir}).ForChannel(channel.Slug),
 		NewClient: func() (*jev.Client, error) { return newJevClient(cfg) },
 		Progress:  func(msg string) { fmt.Fprintln(os.Stderr, msg) },
 	}

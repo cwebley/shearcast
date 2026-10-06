@@ -111,6 +111,10 @@ exit 1
 	f.runner.Progress = func(line string) {
 		// Runner prefixes each message with its channel and episode.
 		_, s, _ := strings.Cut(line, lifecycleID+": ")
+		// Stage completion messages now report timing as well as stage starts.
+		if !strings.HasSuffix(s, "...") {
+			return
+		}
 		switch {
 		case strings.HasPrefix(s, "fetching full audio"):
 			stages = append(stages, "audio")

@@ -95,7 +95,7 @@ func RenderEpisode(
 		return "", nil, nil, fmt.Errorf("detection: no usable caption windows")
 	}
 
-	say("fetching full audio (cached after the first run)...")
+	say("fetching full audio...")
 	fetchStart := time.Now()
 	audioPath, err := cache.Audio(ctx, video, progress)
 	if err != nil {
@@ -116,9 +116,10 @@ func RenderEpisode(
 		return "", nil, nil, fmt.Errorf("probing source audio duration: %w", err)
 	}
 
-	say(fmt.Sprintf("running detection passes against %s...", cfg.Jev.Model))
+	detected := Progress(say).start(fmt.Sprintf("running detection passes against %s", cfg.Jev.Model))
 	before := client.Stats()
 	res, err := detector.Run(ctx, cues, video.Duration)
+	detected(err)
 	if err != nil {
 		return "", nil, nil, fmt.Errorf("detection: %w", err)
 	}
@@ -145,21 +146,24 @@ func RenderEpisode(
 		snapOpts.Window = opts.SnapWindow
 	}
 	if !opts.NoSnap {
-		say("snapping boundaries to real silence...")
+		snapped := Progress(say).start("snapping boundaries to real silence")
 		for i := range segs {
 			start, err := render.Snap(ctx, audioPath, segs[i].Start, snapOpts)
 			if err != nil {
+				snapped(err)
 				return "", nil, nil, fmt.Errorf("snapping start of region %d: %w", i+1, err)
 			}
 			end := segs[i].End
 			// A cut running to the end of the file has no join to snap.
 			if end < sourceDuration.Seconds() {
 				if end, err = render.Snap(ctx, audioPath, end, snapOpts); err != nil {
+					snapped(err)
 					return "", nil, nil, fmt.Errorf("snapping end of region %d: %w", i+1, err)
 				}
 			}
 			segs[i].Start, segs[i].End = start, end
 		}
+		snapped(nil)
 	}
 
 	minKeep := opts.MinKeep
@@ -208,8 +212,10 @@ func RenderEpisode(
 		crossfade = render.DefaultCutOptions().Crossfade
 	}
 	cutOpts := render.CutOptions{Crossfade: render.EffectiveCrossfade(crossfade), BitrateKbps: cfg.OutputBitrate(channel)}
-	say(fmt.Sprintf("encoding AAC at %d kbps...", cutOpts.BitrateKbps))
-	if err := render.Cut(ctx, audioPath, renderKeep, stagePath, cutOpts); err != nil {
+	encoded := Progress(say).start(fmt.Sprintf("encoding AAC at %d kbps", cutOpts.BitrateKbps))
+	cutErr := render.Cut(ctx, audioPath, renderKeep, stagePath, cutOpts)
+	encoded(cutErr)
+	if err := cutErr; err != nil {
 		return "", nil, nil, fmt.Errorf("cutting: %w", err)
 	}
 	duration, err := render.Probe(ctx, stagePath)

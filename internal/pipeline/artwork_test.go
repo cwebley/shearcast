@@ -27,7 +27,7 @@ func TestSyncReplacesEpisodeArtworkWithTheChannelsOwn(t *testing.T) {
 		t.Fatal(err)
 	}
 	pub := &memoryPublisher{objects: map[string][]byte{"show/feed.xml": data}}
-	r := Runner{State: st, Cache: youtube.Cache{Dir: filepath.Join(dir, "cache")}, Publisher: pub,
+	r := Runner{State: st, Cache: youtube.Cache{Dir: filepath.Join(dir, "cache")}, Publisher: pub, RefreshMetadata: true,
 		ListUploads: func(context.Context, string, int) ([]youtube.Video, error) { return nil, nil },
 		ChannelArtwork: func(_ context.Context, url string) (string, error) {
 			return "https://yt3.example/avatar=s0", nil

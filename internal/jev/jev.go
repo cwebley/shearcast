@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/cwebley/shearcast/internal/usage"
+	"github.com/cwebley/shearcast/internal/worklimit"
 )
 
 const (
@@ -207,6 +208,11 @@ func (c *Client) Ask(ctx context.Context, state string, questions map[string]Que
 }
 
 func (c *Client) attempt(ctx context.Context, body []byte, questions int) (result *Response, resultErr error) {
+	release, err := worklimit.Acquire(ctx, worklimit.Model)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.BaseURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, err

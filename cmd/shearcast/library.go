@@ -97,7 +97,7 @@ func runChannel(ctx context.Context, args []string) error {
 			return err
 		}
 		if *purge {
-			r := pipeline.Runner{Config: cfg, State: st, Publisher: publisher, Cache: youtube.Cache{Dir: *cacheDir}}
+			r := pipeline.Runner{Config: cfg, State: st, Publisher: publisher, Cache: (youtube.Cache{Dir: *cacheDir}).ForChannel(ch.Slug)}
 			if err := r.PurgeChannel(ctx, ch); err != nil {
 				return err
 			}
@@ -243,7 +243,7 @@ func runEpisode(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	r := pipeline.Runner{Config: cfg, State: st, Cache: youtube.Cache{Dir: *cacheDir}, Publisher: store,
+	r := pipeline.Runner{Config: cfg, State: st, Cache: (youtube.Cache{Dir: *cacheDir}).ForChannel(ch.Slug), Publisher: store,
 		NewClient: func() (*jev.Client, error) { return newJevClient(cfg) },
 		Progress:  func(message string) { fmt.Fprintln(os.Stderr, message) },
 	}

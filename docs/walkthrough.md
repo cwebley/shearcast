@@ -263,6 +263,10 @@ ffmpeg work in `internal/render/render.go`:
 
 `sync` → `Runner.SyncChannel` (`internal/pipeline/sync.go`), for each channel:
 
+Up to four channels run concurrently, each with its own runner and feed writer.
+Shared limits bound yt-dlp operations, model requests and AAC encodes. A
+per-invocation publisher caches each feed and skips identical document writes.
+
 1. **Recover.** Tidy up anything a crashed run left behind: half-installed
    renders, uploads not yet confirmed in the feed, removals still in progress.
 2. **Retention.** Apply `keep` to the current feed.
@@ -272,23 +276,26 @@ ffmpeg work in `internal/render/render.go`:
    Members-only, private and upcoming videos are skipped, and the newest
    `latest` of the rest are selected.
 5. **`Run(Sync)` on each selected video:**
-   - Already published: refresh the title, description and chapters, then stop.
-     Free.
+   - Already published: reuse metadata. A changed listing title or explicit
+     `-refresh-metadata` fetches source metadata and updates the feed. Neither
+     path makes model calls for an already-published episode.
    - New: fetch metadata, then check the admission rule: *would this video even
      make the newest `keep` by publish date?* If not, it's skipped before any
      spending. That's why old videos never get processed.
    - Captions: fetch them, or mark `waiting_captions` if there aren't any yet.
-   - Detect with jev, which is the paid part. A usage checkpoint is written to
-     state before the first request.
-   - Download the audio, snap, cut, and write the render record. The downloaded
-     source audio is deleted afterwards.
+   - Download and probe the audio before paid work.
+   - Detect with jev. A usage checkpoint is written to state before the first
+     request. A checkpoint failure cancels sibling workers too.
+   - Snap, cut, and write the render record. The downloaded source audio is
+     deleted afterwards. Source workspaces are channel-specific.
    - Publish: upload `slug/<id>.m4a`, rewrite `slug/feed.xml` (items ordered by
      source date, same-day ties broken by YouTube's upload order), and journal
      the publication so a lost response can be reconciled later.
    - Retention again: whatever falls beyond `keep` is marked `pruned`, and its
      audio is deleted from storage.
 6. **After all channels**, the subscription page and OPML file are
-   republished.
+   checked and written only if changed. Feed existence checks reuse snapshots
+   from channel workers; any remaining checks run with bounded concurrency.
 
 Data locations:
 

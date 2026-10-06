@@ -274,6 +274,7 @@ func (s *librarySource) Cues(context.Context, *youtube.Video) ([]transcript.Cue,
 
 func TestBoundedSyncRefreshesThreeAndProcessesOnlyTwo(t *testing.T) {
 	f := newLifecycleFixture(t)
+	f.runner.RefreshMetadata = true
 	ctx := context.Background()
 	ch := request(Sync).Channel
 	ch.URL = "https://youtube.com/@show"

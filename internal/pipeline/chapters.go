@@ -77,6 +77,20 @@ func (r *Runner) prepareChapters(ctx context.Context, ch config.Channel, video *
 		return nil, err
 	}
 	key := fmt.Sprintf("%s/%s.%x.chapters.json", ch.Slug, video.ID, sha256.Sum256(data))
+	// A live feed reference proves this content-addressed revision was uploaded.
+	// A key in the local journal alone does not: its first upload may have failed.
+	if slices.Contains(ep.ChapterKeys, key) {
+		fd, err := loadOrCreateFeed(ctx, r.Publisher, ch, ch.Slug+"/feed.xml")
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range fd.Items {
+			if item.ID == video.ID && item.ChaptersURL == r.Publisher.PublicURL(key) {
+				metadata.url, metadata.list = item.ChaptersURL, nil
+				return metadata, nil
+			}
+		}
+	}
 	if !slices.Contains(ep.ChapterKeys, key) {
 		ep.ChapterKeys = append(ep.ChapterKeys, key)
 		if err := r.State.Save(ch.Slug, video.ID, *ep); err != nil {

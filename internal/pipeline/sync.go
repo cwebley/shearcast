@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html"
+	"time"
 
 	"github.com/cwebley/shearcast/internal/config"
 	"github.com/cwebley/shearcast/internal/feed"
@@ -14,11 +16,32 @@ import (
 )
 
 type EpisodeOutcome struct {
-	ID      string
-	Episode state.Episode
-	Error   error
-	Skipped string // why an inaccessible upload was passed over, in youtube.Video.Unavailable's words
-	Usage   usage.Summary
+	ID        string
+	Episode   state.Episode
+	Error     error
+	Skipped   string // why an inaccessible upload was passed over, in youtube.Video.Unavailable's words
+	Usage     usage.Summary
+	Unchanged bool
+	Refreshed bool
+	Duration  time.Duration
+}
+
+// Status classifies the current outcome independently of saved episode history.
+func (outcome EpisodeOutcome) Status() string {
+	switch {
+	case outcome.Error != nil:
+		return "failed"
+	case outcome.Skipped != "":
+		return "skipped"
+	case outcome.Episode.Removal != "":
+		return outcome.Episode.Removal
+	case outcome.Unchanged:
+		return "unchanged"
+	case outcome.Refreshed:
+		return "metadata refreshed"
+	default:
+		return string(outcome.Episode.Stage)
+	}
 }
 
 // uploads returns the latest-N window of accessible uploads, the inaccessible
@@ -81,7 +104,22 @@ func (r *Runner) withArtwork(ctx context.Context, ch config.Channel) config.Chan
 	if ch.Image != "" || r.ChannelArtwork == nil || ch.URL == "" {
 		return ch
 	}
+	if !r.RefreshMetadata {
+		data, err := r.Publisher.Get(ctx, ch.Slug+"/feed.xml")
+		if err == nil {
+			if fd, err := feed.Parse(data); err == nil && fd.ImageURL != "" {
+				ch.Image = fd.ImageURL
+				return ch
+			}
+		}
+	}
+	progress := Progress(nil)
+	if r.Progress != nil {
+		progress = func(msg string) { r.Progress(ch.Slug + ": " + msg) }
+	}
+	lookedUp := progress.start("fetching show artwork")
 	image, err := r.ChannelArtwork(ctx, ch.URL)
+	lookedUp(err)
 	if err != nil {
 		if r.Progress != nil {
 			r.Progress(fmt.Sprintf("%s: keeping existing show artwork: %v", ch.Slug, err))
@@ -92,12 +130,8 @@ func (r *Runner) withArtwork(ctx context.Context, ch config.Channel) config.Chan
 	return ch
 }
 
-// refreshArtwork rewrites an existing feed whose show artwork differs from the
-// channel's, so new artwork appears without waiting for a new episode.
-func (r *Runner) refreshArtwork(ctx context.Context, ch config.Channel) error {
-	if ch.Image == "" {
-		return nil
-	}
+// refreshFeedSettings applies config edits without fetching source metadata.
+func (r *Runner) refreshFeedSettings(ctx context.Context, ch config.Channel) error {
 	data, err := r.Publisher.Get(ctx, ch.Slug+"/feed.xml")
 	if errors.Is(err, storage.ErrNotFound) {
 		return nil
@@ -109,7 +143,7 @@ func (r *Runner) refreshArtwork(ctx context.Context, ch config.Channel) error {
 	if err != nil {
 		return err
 	}
-	if current.ImageURL == ch.Image {
+	if current.Title == ch.FeedTitle() && current.Description == ch.FeedDescription() && current.Category == ch.FeedCategory() && (ch.Image == "" || current.ImageURL == ch.Image) {
 		return nil
 	}
 	fd, err := loadOrCreateFeed(ctx, r.Publisher, ch, ch.Slug+"/feed.xml")
@@ -120,8 +154,18 @@ func (r *Runner) refreshArtwork(ctx context.Context, ch config.Channel) error {
 }
 
 // SyncChannel retries verified publication independently of source availability,
-// then processes only the bounded upload window. Every episode is sequential.
+// then processes only the bounded upload window. Episodes within a channel are
+// sequential so each feed has a single writer. A Runner belongs to one worker.
 func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []EpisodeOutcome, runErr error) {
+	started := time.Now()
+	progress := Progress(nil)
+	if r.Progress != nil {
+		progress = func(msg string) { r.Progress(ch.Slug + ": " + msg) }
+	}
+	progress.say("starting sync")
+	publisher := r.Publisher
+	r.Publisher = NewSyncPublisher(publisher)
+	defer func() { r.Publisher = publisher }()
 	r.uploadOrder = nil
 	purging := r.State.PurgePending(ch.Slug)
 	if err := r.State.StartChannelSync(ch.Slug); err != nil {
@@ -129,19 +173,46 @@ func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []E
 	}
 	defer func() {
 		runErr = errors.Join(runErr, r.State.FinishChannelSync(ch.Slug, ch.Disabled || purging, runErr))
+		var unchanged, refreshed, published, waiting, skipped int
+		for _, outcome := range result {
+			switch outcome.Status() {
+			case "skipped", Pruned, Excluded:
+				skipped++
+			case "unchanged":
+				unchanged++
+			case "metadata refreshed":
+				refreshed++
+			case string(state.Waiting):
+				waiting++
+			case string(state.Published):
+				published++
+			}
+		}
+		status := "complete"
+		if ch.Disabled || purging {
+			status = "skipped"
+		} else if runErr != nil {
+			status = "failed"
+		}
+		progress.say(fmt.Sprintf("%s in %s (%d unchanged, %d refreshed, %d published, %d waiting, %d skipped)", status, time.Since(started).Round(time.Millisecond), unchanged, refreshed, published, waiting, skipped))
 	}()
 	if ch.Disabled && !r.State.PurgePending(ch.Slug) {
 		return nil, nil
 	}
-	if err := r.Recover(ctx, ch); err != nil {
+	recovered := progress.start("checking interrupted work")
+	recoverErr := r.Recover(ctx, ch)
+	recovered(recoverErr)
+	if err := recoverErr; err != nil {
 		return nil, fmt.Errorf("recovering interrupted work: %w", err)
 	}
 	if ch.Disabled || purging {
 		return nil, nil
 	}
-	ch = r.withArtwork(ctx, ch)
-	if err := r.refreshArtwork(ctx, ch); err != nil {
-		return nil, fmt.Errorf("updating show artwork: %w", err)
+	if r.RefreshMetadata {
+		ch = r.withArtwork(ctx, ch)
+	}
+	if err := r.refreshFeedSettings(ctx, ch); err != nil {
+		return nil, fmt.Errorf("updating feed settings: %w", err)
 	}
 	if err := r.EnforceRetention(ctx, ch); err != nil && !errors.Is(err, ErrSourceOrder) {
 		return nil, fmt.Errorf("retention: %w", err)
@@ -158,24 +229,56 @@ func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []E
 	}
 	attempted := map[string]bool{}
 	positions := map[string]int{}
+	titles := map[string]string{}
 	run := func(id string) error {
 		if attempted[id] {
 			return nil
 		}
 		attempted[id] = true
+		started := time.Now()
 		before := r.Usage.Clone()
-		ep, err := r.Run(ctx, EpisodeRequest{Action: Sync, Channel: ch, Target: id})
-		outcome := EpisodeOutcome{ID: id, Episode: ep, Error: err, Usage: r.Usage.Since(before)}
+		ep, _ := r.State.Episode(ch.Slug, id)
+		wasPublished := ep.HasPublished || ep.Stage == state.Published
+		refreshing := wasPublished && !ep.PublishPending
+		unchanged := (ep.HasPublished || ep.Stage == state.Published) && !ep.PublishPending && ep.Removal == "" && !r.RefreshMetadata
+		var err error
+		if unchanged {
+			fd, loadErr := loadOrCreateFeed(ctx, r.Publisher, ch, ch.Slug+"/feed.xml")
+			err = loadErr
+			if err == nil {
+				found := false
+				for _, item := range fd.Items {
+					if item.ID == id {
+						found = true
+						if title := titles[id]; title != "" && html.UnescapeString(title) != item.Title {
+							unchanged = false
+						}
+						break
+					}
+				}
+				if !found {
+					err = fmt.Errorf("published episode %s is missing from %s/feed.xml; explicitly publish its audio to restore it", id, ch.Slug)
+				}
+			}
+		}
+		if err == nil && !unchanged {
+			ep, err = r.Run(ctx, EpisodeRequest{Action: Sync, Channel: ch, Target: id})
+		}
+		outcome := EpisodeOutcome{ID: id, Episode: ep, Error: err, Usage: r.Usage.Since(before), Unchanged: unchanged && err == nil, Refreshed: refreshing && !unchanged && ep.Removal == "" && err == nil, Duration: time.Since(started)}
 		if unavailable := (*youtube.UnavailableError)(nil); errors.As(err, &unavailable) {
 			outcome, err = r.skip(ch, id, unavailable.Reason)
 			outcome.Usage = r.Usage.Since(before)
 		}
 		if i, ok := positions[id]; ok {
 			outcome.Usage = outcomes[i].Usage.Add(outcome.Usage)
+			outcome.Duration += outcomes[i].Duration
 			outcomes[i] = outcome
 		} else {
 			positions[id] = len(outcomes)
 			outcomes = append(outcomes, outcome)
+		}
+		if r.OnOutcome != nil {
+			r.OnOutcome(outcome)
 		}
 		return err
 	}
@@ -199,9 +302,19 @@ func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []E
 			}
 		}
 	}
+	listed := progress.start("checking uploads")
 	uploads, skipped, order, err := r.uploads(ctx, ch)
+	listed(err)
 	if err != nil {
 		return finish(fmt.Errorf("listing uploads: %w", err))
+	}
+	if !r.RefreshMetadata && len(uploads) > 0 {
+		// Existing feeds reuse their artwork. Fetch a first avatar only when
+		// there is selected work, rather than on every empty-channel check.
+		ch = r.withArtwork(ctx, ch)
+		if err := r.refreshFeedSettings(ctx, ch); err != nil {
+			return finish(fmt.Errorf("updating feed settings: %w", err))
+		}
 	}
 	for _, v := range skipped {
 		if attempted[v.ID] {
@@ -210,8 +323,14 @@ func (r *Runner) SyncChannel(ctx context.Context, ch config.Channel) (result []E
 		attempted[v.ID] = true
 		outcome, _ := r.skip(ch, v.ID, v.Unavailable())
 		outcomes = append(outcomes, outcome)
+		if r.OnOutcome != nil {
+			r.OnOutcome(outcome)
+		}
 	}
 	r.uploadOrder = order
+	for _, upload := range uploads {
+		titles[upload.ID] = upload.Title
+	}
 	if err := r.EnforceRetention(ctx, ch); err != nil && !errors.Is(err, ErrSourceOrder) {
 		return finish(err)
 	}

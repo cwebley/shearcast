@@ -17,6 +17,7 @@ import (
 	"github.com/cwebley/shearcast/internal/jev"
 	"github.com/cwebley/shearcast/internal/state"
 	"github.com/cwebley/shearcast/internal/usage"
+	"github.com/cwebley/shearcast/internal/worklimit"
 	"github.com/cwebley/shearcast/internal/youtube"
 )
 
@@ -259,9 +260,14 @@ func TestUsageCheckpointFailureStopsRemainingEpisodes(t *testing.T) {
 	}
 	ch := request(Sync).Channel
 	ch.URL = "https://youtube.com/@show"
-	outcomes, err := f.runner.SyncChannel(context.Background(), ch)
+	ctx, cancel := worklimit.With(context.Background(), 2, 4, 1)
+	defer cancel()
+	outcomes, err := f.runner.SyncChannel(ctx, ch)
 	if !errors.Is(err, usage.ErrCheckpoint) || len(outcomes) != 1 || requests.Load() != 1 {
 		t.Fatalf("continued after accounting failure: requests=%d outcomes=%d error=%v", requests.Load(), len(outcomes), err)
+	}
+	if !errors.Is(context.Cause(ctx), usage.ErrCheckpoint) {
+		t.Fatal("accounting failure did not cancel sibling work")
 	}
 	if f.runner.Usage.InputTokens != 100 || f.runner.Usage.ProviderCost != .001 {
 		t.Fatal("lost in-memory observations after failed write")
